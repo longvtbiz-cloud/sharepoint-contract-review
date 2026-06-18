@@ -32,6 +32,8 @@ def assert_biz_ticket_can_reach_review() -> None:
     assert result["dd_result"]["contract_review_allowed"] is True, result
     assert result["review_plan"]["status"] == "Ready", result
     assert len(result["audit_events"]) == 5, result
+    assert result["sharepoint_plan"]["operations"][0]["path"] == "/api/sharepoint/folders/create", result
+    assert result["api_contracts"]["sharepoint"]["create_folder"] == "POST /api/sharepoint/folders/create", result
 
 
 def assert_dd_blocks_contract_review() -> None:
@@ -68,6 +70,7 @@ def assert_external_partner_visibility_is_limited() -> None:
     assert result["visibility"] == "external_limited", result
     assert "dd_result" not in result, result
     assert "audit_events" not in result, result
+    assert "api_contracts" not in result, result
     assert result["access_result"]["allowed"] is False, result
 
 

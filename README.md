@@ -25,6 +25,7 @@ Implemented foundation:
 - DD gate enforcement.
 - Mandatory review matrix checks for initial trigger signals.
 - SharePoint folder and permission action planning.
+- Internal API contract registry for Admin, SharePoint, DD, Contract Review, and AI placeholders.
 - Audit event generation across the deterministic workflow.
 
 ## Prerequisites

@@ -57,6 +57,7 @@ EXTERNAL_RESTRICTED_FIELDS = {
     "internal_comments",
     "legal_memo",
     "approval_notes",
+    "api_contracts",
 }
 
 

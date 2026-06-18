@@ -23,6 +23,7 @@ from governance.agents.dd import evaluate_dd_gate
 from governance.agents.intake import normalize_ticket
 from governance.agents.rbac import evaluate_access, sanitize_response
 from governance.agents.sharepoint import build_sharepoint_plan
+from governance.contracts import all_api_contracts
 
 load_dotenv()
 
@@ -318,6 +319,7 @@ def handler(payload: dict, context: RequestContext) -> dict:
         "review_plan": result.get("review_plan"),
         "sharepoint_plan": result.get("sharepoint_plan"),
         "audit_events": result.get("audit_events", []),
+        "api_contracts": all_api_contracts(),
         "workflow_status": result.get("status"),
         "ai_summary": result["messages"][-1].content if result.get("messages") else None,
         "timestamp": _utc_now(),
