@@ -63,6 +63,7 @@ EXTERNAL_RESTRICTED_FIELDS = {
     "api_contracts",
     "negotiation_plan",
     "termination_plan",
+    "ai_plan",
 }
 
 

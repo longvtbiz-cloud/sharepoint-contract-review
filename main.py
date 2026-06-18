@@ -18,6 +18,7 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 
 from governance.agents.audit import build_audit_event
+from governance.agents.ai import build_ai_plan
 from governance.agents.contract_review import prepare_contract_review
 from governance.agents.dd import evaluate_dd_gate
 from governance.agents.intake import normalize_ticket
@@ -96,6 +97,7 @@ class GovernanceState(TypedDict, total=False):
     negotiation_plan: dict[str, Any]
     partner_portal_plan: dict[str, Any]
     termination_plan: dict[str, Any]
+    ai_plan: dict[str, Any]
     audit_events: Annotated[list[dict[str, Any]], operator.add]
     status: Literal["draft", "blocked", "ready_for_review", "reviewer_selection_incomplete"]
 
@@ -208,6 +210,28 @@ def lifecycle_agent(state: GovernanceState) -> GovernanceState:
     return {**active_plans, "audit_events": [audit]}
 
 
+def ai_planning_agent(state: GovernanceState) -> GovernanceState:
+    ticket = state["ticket"]
+    ai_plan = build_ai_plan(
+        ticket=ticket,
+        dd_result=state.get("dd_result"),
+        review_plan=state.get("review_plan"),
+        negotiation_plan=state.get("negotiation_plan"),
+        termination_plan=state.get("termination_plan"),
+    )
+    audit = build_audit_event(
+        actor=ticket["created_by"],
+        role="SYSTEM",
+        action="ai.plan_prepared",
+        object_type="ticket",
+        object_id=ticket["ticket_id"],
+        before={},
+        after=ai_plan,
+        source="automation",
+    )
+    return {"ai_plan": ai_plan, "audit_events": [audit]}
+
+
 def access_denied_agent(state: GovernanceState) -> GovernanceState:
     access_result = state["access_result"]
     return {
@@ -246,6 +270,7 @@ def ai_summary_agent(state: GovernanceState) -> GovernanceState:
         "negotiation_plan": state.get("negotiation_plan", {}),
         "partner_portal_plan": state.get("partner_portal_plan", {}),
         "termination_plan": state.get("termination_plan", {}),
+        "ai_plan": state.get("ai_plan", {}),
         "access_result": state.get("access_result", {}),
     }
     response = llm_with_tools.invoke(
@@ -294,6 +319,7 @@ graph_builder.add_node("dd_gate_agent", dd_gate_agent)
 graph_builder.add_node("contract_review_agent", contract_review_agent)
 graph_builder.add_node("sharepoint_agent", sharepoint_agent)
 graph_builder.add_node("lifecycle_agent", lifecycle_agent)
+graph_builder.add_node("ai_planning_agent", ai_planning_agent)
 graph_builder.add_node("access_denied_agent", access_denied_agent)
 graph_builder.add_node("ai_summary_agent", ai_summary_agent)
 graph_builder.add_node("tools", ToolNode([remember_governance_fact, recall_governance_context]))
@@ -319,7 +345,8 @@ graph_builder.add_conditional_edges(
 )
 graph_builder.add_edge("contract_review_agent", "sharepoint_agent")
 graph_builder.add_edge("sharepoint_agent", "lifecycle_agent")
-graph_builder.add_edge("lifecycle_agent", "ai_summary_agent")
+graph_builder.add_edge("lifecycle_agent", "ai_planning_agent")
+graph_builder.add_edge("ai_planning_agent", "ai_summary_agent")
 graph_builder.add_conditional_edges("ai_summary_agent", tools_condition)
 graph_builder.add_edge("tools", "ai_summary_agent")
 graph_builder.add_edge("ai_summary_agent", END)
@@ -357,6 +384,7 @@ def handler(payload: dict, context: RequestContext) -> dict:
         "negotiation_plan": result.get("negotiation_plan"),
         "partner_portal_plan": result.get("partner_portal_plan"),
         "termination_plan": result.get("termination_plan"),
+        "ai_plan": result.get("ai_plan"),
         "audit_events": result.get("audit_events", []),
         "api_contracts": all_api_contracts(),
         "workflow_status": result.get("status"),

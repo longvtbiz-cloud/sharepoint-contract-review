@@ -96,6 +96,7 @@ AI_API_CONTRACTS = {
     "recommend_reviewers": "POST /api/ai/contracts/recommend-reviewers",
     "contract_risk_score": "POST /api/ai/contracts/risk-score",
     "negotiation_playbook": "POST /api/ai/negotiation/playbook",
+    "termination_checklist": "POST /api/ai/termination/checklist",
 }
 
 

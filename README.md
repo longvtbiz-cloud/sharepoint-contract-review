@@ -27,6 +27,7 @@ Implemented foundation:
 - Mandatory review matrix checks for initial trigger signals.
 - Contract review round plan and reviewer task generation.
 - Negotiation, Partner Portal Biz Gate, and Termination workflow planning.
+- AI connector operation planning for DD, contract review, negotiation, risk scoring, and termination checklist.
 - SharePoint folder and permission action planning.
 - Internal API contract registry for Admin, SharePoint, DD, Contract Review, and AI placeholders.
 - Audit event generation across the deterministic workflow.
