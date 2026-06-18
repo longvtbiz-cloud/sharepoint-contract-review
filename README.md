@@ -13,7 +13,19 @@ LangGraph. The graph is divided into deterministic agent nodes:
 - Contract Review Agent: prepares review rounds and mandatory department checks.
 - SharePoint Agent: prepares official folder and permission actions.
 - Audit Agent: emits audit events for every workflow transition.
+- RBAC Agent: enforces role/action permission before workflow gates.
 - AI Summary Agent: optionally summarizes blockers and next actions when an LLM is configured.
+
+## Phase 1 Scope
+
+Implemented foundation:
+
+- Role-based access control with internal and external visibility rules.
+- Partner ticket normalization.
+- DD gate enforcement.
+- Mandatory review matrix checks for initial trigger signals.
+- SharePoint folder and permission action planning.
+- Audit event generation across the deterministic workflow.
 
 ## Prerequisites
 
@@ -81,6 +93,14 @@ Test an invocation:
 curl -X POST http://127.0.0.1:8080/invocations `
   -H "Content-Type: application/json" `
   -d "{\"ticket_id\":\"TCK-000001\",\"partner_name\":\"Haidilao\",\"tax_code\":\"123456789\",\"project_case\":\"DieuChinhPhi\",\"created_by\":\"biz.user\",\"dd_status\":\"Pass\",\"selected_departments\":[\"Legal\",\"FA\"],\"contract_signals\":[\"contains_payment_terms\"]}"
+```
+
+Run deterministic validation checks without starting the server:
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+$env:PYTHONUTF8='1'
+python scripts\validate_governance_flow.py
 ```
 
 ## Deploy

@@ -21,6 +21,7 @@ from governance.agents.audit import build_audit_event
 from governance.agents.contract_review import prepare_contract_review
 from governance.agents.dd import evaluate_dd_gate
 from governance.agents.intake import normalize_ticket
+from governance.agents.rbac import evaluate_access, sanitize_response
 from governance.agents.sharepoint import build_sharepoint_plan
 
 load_dotenv()
@@ -84,6 +85,7 @@ def recall_governance_context(query: str) -> str:
 class GovernanceState(TypedDict, total=False):
     messages: Annotated[list[BaseMessage], add_messages]
     ticket: dict[str, Any]
+    access_result: dict[str, Any]
     dd_result: dict[str, Any]
     review_plan: dict[str, Any]
     sharepoint_plan: dict[str, Any]
@@ -105,6 +107,24 @@ def intake_agent(state: GovernanceState) -> GovernanceState:
         source=payload.get("source", "api"),
     )
     return {"ticket": ticket, "audit_events": [audit], "status": "draft"}
+
+
+def rbac_agent(state: GovernanceState) -> GovernanceState:
+    payload = _latest_json_payload(state)
+    ticket = state["ticket"]
+    access_result = evaluate_access(payload, ticket)
+    audit = build_audit_event(
+        actor=access_result["actor"],
+        role=access_result["role"],
+        action="rbac.access_evaluated",
+        object_type="ticket",
+        object_id=ticket["ticket_id"],
+        before={},
+        after=access_result,
+        source=payload.get("source", "api"),
+    )
+    status = "draft" if access_result["allowed"] else "blocked"
+    return {"access_result": access_result, "audit_events": [audit], "status": status}
 
 
 def dd_gate_agent(state: GovernanceState) -> GovernanceState:
@@ -156,6 +176,21 @@ def sharepoint_agent(state: GovernanceState) -> GovernanceState:
     return {"sharepoint_plan": sharepoint_plan, "audit_events": [audit]}
 
 
+def access_denied_agent(state: GovernanceState) -> GovernanceState:
+    access_result = state["access_result"]
+    return {
+        "messages": [
+            SystemMessage(
+                content=(
+                    "Access denied by RBAC policy: "
+                    f"{access_result.get('denied_reason', 'No reason provided.')}"
+                )
+            )
+        ],
+        "status": "blocked",
+    }
+
+
 def ai_summary_agent(state: GovernanceState) -> GovernanceState:
     if not LLM_MODEL or not LLM_BASE_URL or not LLM_API_KEY:
         return {
@@ -176,6 +211,7 @@ def ai_summary_agent(state: GovernanceState) -> GovernanceState:
         "dd_result": state.get("dd_result", {}),
         "review_plan": state.get("review_plan", {}),
         "sharepoint_plan": state.get("sharepoint_plan", {}),
+        "access_result": state.get("access_result", {}),
     }
     response = llm_with_tools.invoke(
         [
@@ -197,6 +233,12 @@ def route_after_dd(state: GovernanceState) -> str:
     return "sharepoint_agent"
 
 
+def route_after_rbac(state: GovernanceState) -> str:
+    if state["access_result"]["allowed"]:
+        return "dd_gate_agent"
+    return "access_denied_agent"
+
+
 def _latest_json_payload(state: GovernanceState) -> dict[str, Any]:
     for message in reversed(state.get("messages", [])):
         content = getattr(message, "content", "")
@@ -212,14 +254,25 @@ def _latest_json_payload(state: GovernanceState) -> dict[str, Any]:
 
 graph_builder = StateGraph(GovernanceState)
 graph_builder.add_node("intake_agent", intake_agent)
+graph_builder.add_node("rbac_agent", rbac_agent)
 graph_builder.add_node("dd_gate_agent", dd_gate_agent)
 graph_builder.add_node("contract_review_agent", contract_review_agent)
 graph_builder.add_node("sharepoint_agent", sharepoint_agent)
+graph_builder.add_node("access_denied_agent", access_denied_agent)
 graph_builder.add_node("ai_summary_agent", ai_summary_agent)
 graph_builder.add_node("tools", ToolNode([remember_governance_fact, recall_governance_context]))
 
 graph_builder.add_edge(START, "intake_agent")
-graph_builder.add_edge("intake_agent", "dd_gate_agent")
+graph_builder.add_edge("intake_agent", "rbac_agent")
+graph_builder.add_conditional_edges(
+    "rbac_agent",
+    route_after_rbac,
+    {
+        "dd_gate_agent": "dd_gate_agent",
+        "access_denied_agent": "access_denied_agent",
+    },
+)
+graph_builder.add_edge("access_denied_agent", "ai_summary_agent")
 graph_builder.add_conditional_edges(
     "dd_gate_agent",
     route_after_dd,
@@ -257,9 +310,10 @@ def handler(payload: dict, context: RequestContext) -> dict:
     }
     result = graph.invoke({"messages": [HumanMessage(content=json.dumps(message, ensure_ascii=False))]}, config)
 
-    return {
+    response = {
         "status": "success",
         "ticket": result.get("ticket"),
+        "access_result": result.get("access_result"),
         "dd_result": result.get("dd_result"),
         "review_plan": result.get("review_plan"),
         "sharepoint_plan": result.get("sharepoint_plan"),
@@ -268,6 +322,7 @@ def handler(payload: dict, context: RequestContext) -> dict:
         "ai_summary": result["messages"][-1].content if result.get("messages") else None,
         "timestamp": _utc_now(),
     }
+    return sanitize_response(response, result.get("access_result"))
 
 
 @app.ping
