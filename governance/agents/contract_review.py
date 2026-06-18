@@ -1,13 +1,7 @@
 from typing import Any
 
-
-BASE_MANDATORY_DEPARTMENTS = ["Legal"]
-TRIGGER_DEPARTMENT_RULES = {
-    "contains_payment_terms": "FA",
-    "contains_personal_data": "PDPA",
-    "contains_settlement_or_reconciliation": "OPS",
-    "contains_aml_or_kyc_obligation": "Compliance",
-}
+from governance.contracts import api_operation
+from governance.review_matrix import build_reviewer_tasks, evaluate_review_matrix
 
 
 def prepare_contract_review(ticket: dict[str, Any], dd_result: dict[str, Any]) -> dict[str, Any]:
@@ -19,25 +13,47 @@ def prepare_contract_review(ticket: dict[str, Any], dd_result: dict[str, Any]) -
             "missing_mandatory_departments": [],
         }
 
-    selected = set(ticket.get("selected_departments") or [])
-    signals = set(ticket.get("contract_signals") or [])
-    mandatory = set(BASE_MANDATORY_DEPARTMENTS)
-    triggered = []
-
-    for signal, department in TRIGGER_DEPARTMENT_RULES.items():
-        if signal in signals:
-            mandatory.add(department)
-            triggered.append({"condition": signal, "required_department": department})
-
-    missing = sorted(mandatory - selected)
+    matrix_result = evaluate_review_matrix(ticket)
+    missing = matrix_result["missing_mandatory_departments"]
+    round_number = int(ticket.get("current_round", 0)) + 1
+    round_id = f"RND-{ticket.get('ticket_id', 'TCK-DRAFT')}-{round_number:02d}"
+    departments_for_tasks = sorted(set(matrix_result["selected_departments"]) | set(matrix_result["mandatory_departments"]))
+    tasks = build_reviewer_tasks(ticket, departments_for_tasks, round_id)
     return {
-        "round_number": int(ticket.get("current_round", 0)) + 1,
+        "round_id": round_id,
+        "ticket_id": ticket.get("ticket_id"),
+        "round_number": round_number,
         "round_type": "Internal Review",
         "status": "Ready" if not missing else "Reviewer Selection Incomplete",
-        "selected_departments": sorted(selected),
-        "mandatory_departments": sorted(mandatory),
+        "contract_type": matrix_result["contract_type"],
+        "selected_departments": matrix_result["selected_departments"],
+        "mandatory_departments": matrix_result["mandatory_departments"],
+        "optional_departments": matrix_result["optional_departments"],
         "missing_mandatory_departments": missing,
-        "trigger_rules_applied": triggered,
+        "trigger_rules_applied": matrix_result["trigger_rules_applied"],
+        "reviewer_tasks": tasks,
+        "operations": [
+            api_operation(
+                "POST",
+                "/api/contracts/rounds/create",
+                {
+                    "round_id": round_id,
+                    "ticket_id": ticket.get("ticket_id"),
+                    "round_number": round_number,
+                    "round_type": "Internal Review",
+                    "selected_departments": matrix_result["selected_departments"],
+                    "mandatory_departments": matrix_result["mandatory_departments"],
+                },
+            ),
+            api_operation(
+                "POST",
+                "/api/contracts/rounds/{round_id}/assign-reviewers",
+                {
+                    "round_id": round_id,
+                    "tasks": tasks,
+                },
+            ),
+        ],
         "message": (
             "This department is mandatory for this contract type and cannot be removed."
             if missing

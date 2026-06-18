@@ -32,6 +32,8 @@ def assert_biz_ticket_can_reach_review() -> None:
     assert result["dd_result"]["contract_review_allowed"] is True, result
     assert result["dd_result"]["risk_level"] == "Unknown", result
     assert result["review_plan"]["status"] == "Ready", result
+    assert result["review_plan"]["operations"][0]["path"] == "/api/contracts/rounds/create", result
+    assert len(result["review_plan"]["reviewer_tasks"]) == 2, result
     assert len(result["audit_events"]) == 5, result
     assert result["sharepoint_plan"]["operations"][0]["path"] == "/api/sharepoint/folders/create", result
     assert result["api_contracts"]["sharepoint"]["create_folder"] == "POST /api/sharepoint/folders/create", result
@@ -74,6 +76,25 @@ def assert_dd_rulebook_rejects_critical_findings() -> None:
     assert result["dd_result"]["data_source_plan"]["operations"][0]["path"] == "/api/data-sources/{source_id}/sync", result
 
 
+def assert_missing_mandatory_department_blocks_round_readiness() -> None:
+    result = invoke(
+        {
+            "action": "ticket.create",
+            "role": "BIZ_OWNER",
+            "ticket_id": "TCK-000005",
+            "partner_name": "Missing Reviewer Partner",
+            "project_case": "PersonalDataProject",
+            "created_by": "biz.user",
+            "dd_status": "Pass",
+            "selected_departments": ["Legal"],
+            "contract_signals": ["contains_personal_data"],
+        }
+    )
+    assert result["workflow_status"] == "reviewer_selection_incomplete", result
+    assert result["review_plan"]["status"] == "Reviewer Selection Incomplete", result
+    assert result["review_plan"]["missing_mandatory_departments"] == ["PDPA"], result
+
+
 def assert_external_partner_visibility_is_limited() -> None:
     result = invoke(
         {
@@ -98,5 +119,6 @@ if __name__ == "__main__":
     assert_biz_ticket_can_reach_review()
     assert_dd_blocks_contract_review()
     assert_dd_rulebook_rejects_critical_findings()
+    assert_missing_mandatory_department_blocks_round_readiness()
     assert_external_partner_visibility_is_limited()
-    print(json.dumps({"status": "pass", "checks": 4}, indent=2))
+    print(json.dumps({"status": "pass", "checks": 5}, indent=2))

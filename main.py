@@ -91,7 +91,7 @@ class GovernanceState(TypedDict, total=False):
     review_plan: dict[str, Any]
     sharepoint_plan: dict[str, Any]
     audit_events: Annotated[list[dict[str, Any]], operator.add]
-    status: Literal["draft", "blocked", "ready_for_review"]
+    status: Literal["draft", "blocked", "ready_for_review", "reviewer_selection_incomplete"]
 
 
 def intake_agent(state: GovernanceState) -> GovernanceState:
@@ -158,7 +158,8 @@ def contract_review_agent(state: GovernanceState) -> GovernanceState:
         after=review_plan,
         source="automation",
     )
-    return {"review_plan": review_plan, "audit_events": [audit]}
+    status = "ready_for_review" if review_plan["status"] == "Ready" else "reviewer_selection_incomplete"
+    return {"review_plan": review_plan, "audit_events": [audit], "status": status}
 
 
 def sharepoint_agent(state: GovernanceState) -> GovernanceState:
