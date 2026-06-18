@@ -74,6 +74,21 @@ CONTRACT_REVIEW_API_CONTRACTS = {
     "list_ticket_rounds": "GET /api/contracts/tickets/{ticket_id}/rounds",
 }
 
+PARTNER_PORTAL_API_CONTRACTS = {
+    "create_request": "POST /api/partner-portal/requests",
+    "upload_document": "POST /api/partner-portal/documents/upload",
+    "submit_redline": "POST /api/partner-portal/redlines",
+    "submit_question": "POST /api/partner-portal/questions",
+    "get_limited_status": "GET /api/partner-portal/tickets/{ticket_id}/status",
+}
+
+TERMINATION_API_CONTRACTS = {
+    "create_workflow": "POST /api/termination/workflows/create",
+    "advance_stage": "POST /api/termination/workflows/{termination_id}/advance",
+    "final_approval": "POST /api/termination/workflows/{termination_id}/final-approval",
+    "archive": "POST /api/termination/workflows/{termination_id}/archive",
+}
+
 AI_API_CONTRACTS = {
     "dd_analyze": "POST /api/ai/dd/analyze",
     "contract_summarize": "POST /api/ai/contracts/summarize",
@@ -91,5 +106,7 @@ def all_api_contracts() -> dict[str, Any]:
         "data_sources": DATA_SOURCE_API_CONTRACTS,
         "dd": DD_API_CONTRACTS,
         "contract_review": CONTRACT_REVIEW_API_CONTRACTS,
+        "partner_portal": PARTNER_PORTAL_API_CONTRACTS,
+        "termination": TERMINATION_API_CONTRACTS,
         "ai": AI_API_CONTRACTS,
     }

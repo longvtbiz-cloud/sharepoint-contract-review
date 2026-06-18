@@ -45,6 +45,9 @@ ACTION_ROLES = {
         "PRODUCT_REVIEWER",
     },
     "partner.request.submit": {"EXTERNAL_PARTNER", "LEGAL_ADMIN", "BIZ_OWNER", "BIZ_MANAGER"},
+    "counterparty.send": {"LEGAL_ADMIN", "BIZ_OWNER", "BIZ_MANAGER"},
+    "counterparty.receive": {"LEGAL_ADMIN", "BIZ_OWNER", "BIZ_MANAGER"},
+    "termination.create": {"LEGAL_ADMIN", "LEGAL_MANAGER", "BIZ_MANAGER", "BIZ_OWNER"},
     "admin.configure": {"LEGAL_ADMIN"},
     "workflow.override": {"LEGAL_ADMIN"},
 }
@@ -58,6 +61,8 @@ EXTERNAL_RESTRICTED_FIELDS = {
     "legal_memo",
     "approval_notes",
     "api_contracts",
+    "negotiation_plan",
+    "termination_plan",
 }
 
 

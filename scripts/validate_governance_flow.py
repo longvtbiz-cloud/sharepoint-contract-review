@@ -115,10 +115,50 @@ def assert_external_partner_visibility_is_limited() -> None:
     assert result["access_result"]["allowed"] is False, result
 
 
+def assert_partner_request_uses_biz_gate_and_limited_visibility() -> None:
+    result = invoke(
+        {
+            "action": "partner.request.submit",
+            "role": "EXTERNAL_PARTNER",
+            "ticket_id": "TCK-000006",
+            "ticket_type": "Partner Request",
+            "partner_name": "External Co",
+            "project_case": "PartnerQuestion",
+            "created_by": "partner.user",
+            "dd_status": "Pending",
+        }
+    )
+    assert result["workflow_status"] == "blocked", result
+    assert result["visibility"] == "external_limited", result
+    assert result["partner_portal_plan"]["biz_gate"]["stage"] == "Biz Preliminary Assessment", result
+    assert "negotiation_plan" not in result, result
+
+
+def assert_termination_workflow_is_planned() -> None:
+    result = invoke(
+        {
+            "action": "termination.create",
+            "role": "BIZ_MANAGER",
+            "ticket_id": "TCK-000007",
+            "ticket_type": "Termination",
+            "partner_name": "Closing Partner",
+            "project_case": "TerminationCase",
+            "created_by": "biz.manager",
+            "dd_status": "Pass",
+            "selected_departments": ["Legal"],
+        }
+    )
+    assert result["termination_plan"]["operations"][0]["path"] == "/api/termination/workflows/create", result
+    assert result["termination_plan"]["stages"][-1] == "Archive", result
+    assert result["api_contracts"]["termination"]["archive"] == "POST /api/termination/workflows/{termination_id}/archive", result
+
+
 if __name__ == "__main__":
     assert_biz_ticket_can_reach_review()
     assert_dd_blocks_contract_review()
     assert_dd_rulebook_rejects_critical_findings()
     assert_missing_mandatory_department_blocks_round_readiness()
     assert_external_partner_visibility_is_limited()
-    print(json.dumps({"status": "pass", "checks": 5}, indent=2))
+    assert_partner_request_uses_biz_gate_and_limited_visibility()
+    assert_termination_workflow_is_planned()
+    print(json.dumps({"status": "pass", "checks": 7}, indent=2))
