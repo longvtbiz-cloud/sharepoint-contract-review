@@ -1,2 +1,89 @@
-# sharepoint-contract-review
-Đây là dự án review vòng đời của đối tác qua sharepoint
+# enterprise-partner-governance-platform
+
+Enterprise Partner Governance Platform agent scaffold for SharePoint, Office365,
+Due Diligence, Contract Review, and Audit governance.
+
+## Architecture
+
+This project starts with a Governance Orchestrator built on AgentBase and
+LangGraph. The graph is divided into deterministic agent nodes:
+
+- Intake Agent: normalizes partner lifecycle tickets.
+- DD Gate Agent: enforces `No DD Pass -> No Contract Review`.
+- Contract Review Agent: prepares review rounds and mandatory department checks.
+- SharePoint Agent: prepares official folder and permission actions.
+- Audit Agent: emits audit events for every workflow transition.
+- AI Summary Agent: optionally summarizes blockers and next actions when an LLM is configured.
+
+## Prerequisites
+
+- Python 3.10+
+- A GreenNode IAM Service Account
+
+## Setup
+
+```powershell
+python -m venv venv
+venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+Copy `.env.example` to `.env` for local development and configure credentials.
+Do not commit `.env` or `.greennode.json`.
+
+## Configure LLM
+
+Set these values in `.env` when you want AI summaries or tool-calling:
+
+```env
+LLM_API_KEY=
+LLM_BASE_URL=
+LLM_MODEL=
+```
+
+Provider examples:
+
+- GreenNode AIP: `LLM_BASE_URL=https://maas-llm-aiplatform-hcm.api.vngcloud.vn/v1`
+- OpenAI: `LLM_BASE_URL=https://api.openai.com/v1`
+- Ollama local: `LLM_BASE_URL=http://localhost:11434/v1`
+
+## Configure Memory
+
+Create memory later with `/agentbase-memory` and set:
+
+```env
+MEMORY_ID=
+MEMORY_STRATEGY_ID=default
+```
+
+When `MEMORY_ID` is configured, requests must include:
+
+```text
+X-GreenNode-AgentBase-User-Id: test-user
+X-GreenNode-AgentBase-Session-Id: test-session-1
+```
+
+## Run Locally
+
+```powershell
+python main.py
+```
+
+Test health:
+
+```powershell
+curl http://127.0.0.1:8080/health
+```
+
+Test an invocation:
+
+```powershell
+curl -X POST http://127.0.0.1:8080/invocations `
+  -H "Content-Type: application/json" `
+  -d "{\"ticket_id\":\"TCK-000001\",\"partner_name\":\"Haidilao\",\"tax_code\":\"123456789\",\"project_case\":\"DieuChinhPhi\",\"created_by\":\"biz.user\",\"dd_status\":\"Pass\",\"selected_departments\":[\"Legal\",\"FA\"],\"contract_signals\":[\"contains_payment_terms\"]}"
+```
+
+## Deploy
+
+Use `/agentbase-deploy` after local validation to build, push, and deploy to
+AgentBase Runtime.
