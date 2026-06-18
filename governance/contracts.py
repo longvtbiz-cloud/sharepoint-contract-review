@@ -56,6 +56,15 @@ DD_API_CONTRACTS = {
     "request_more_info": "POST /api/dd/request-more-info",
 }
 
+DATA_SOURCE_API_CONTRACTS = {
+    "create": "POST /api/data-sources",
+    "list": "GET /api/data-sources",
+    "update": "PUT /api/data-sources/{source_id}",
+    "delete": "DELETE /api/data-sources/{source_id}",
+    "test": "POST /api/data-sources/{source_id}/test",
+    "sync": "POST /api/data-sources/{source_id}/sync",
+}
+
 CONTRACT_REVIEW_API_CONTRACTS = {
     "create_round": "POST /api/contracts/rounds/create",
     "assign_reviewers": "POST /api/contracts/rounds/{round_id}/assign-reviewers",
@@ -79,6 +88,7 @@ def all_api_contracts() -> dict[str, Any]:
     return {
         "admin": ADMIN_API_CONTRACTS,
         "sharepoint": SHAREPOINT_API_CONTRACTS,
+        "data_sources": DATA_SOURCE_API_CONTRACTS,
         "dd": DD_API_CONTRACTS,
         "contract_review": CONTRACT_REVIEW_API_CONTRACTS,
         "ai": AI_API_CONTRACTS,

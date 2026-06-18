@@ -28,5 +28,7 @@ def normalize_ticket(payload: dict[str, Any]) -> dict[str, Any]:
         "contract_type": payload.get("contract_type", ""),
         "selected_departments": payload.get("selected_departments", []),
         "contract_signals": payload.get("contract_signals", []),
+        "dd_findings": payload.get("dd_findings", []),
+        "dd_sources": payload.get("dd_sources", []),
         "exception": payload.get("exception"),
     }

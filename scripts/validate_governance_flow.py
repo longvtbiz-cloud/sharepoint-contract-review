@@ -30,6 +30,7 @@ def assert_biz_ticket_can_reach_review() -> None:
     )
     assert result["workflow_status"] == "ready_for_review", result
     assert result["dd_result"]["contract_review_allowed"] is True, result
+    assert result["dd_result"]["risk_level"] == "Unknown", result
     assert result["review_plan"]["status"] == "Ready", result
     assert len(result["audit_events"]) == 5, result
     assert result["sharepoint_plan"]["operations"][0]["path"] == "/api/sharepoint/folders/create", result
@@ -52,6 +53,25 @@ def assert_dd_blocks_contract_review() -> None:
     assert result["workflow_status"] == "blocked", result
     assert result["dd_result"]["contract_review_allowed"] is False, result
     assert result.get("review_plan") is None, result
+
+
+def assert_dd_rulebook_rejects_critical_findings() -> None:
+    result = invoke(
+        {
+            "action": "ticket.create",
+            "role": "BIZ_OWNER",
+            "ticket_id": "TCK-000004",
+            "partner_name": "Critical Partner",
+            "project_case": "NewCooperation",
+            "created_by": "biz.user",
+            "dd_findings": ["sanctions_match"],
+            "selected_departments": ["Legal"],
+        }
+    )
+    assert result["workflow_status"] == "blocked", result
+    assert result["dd_result"]["dd_status"] == "Reject", result
+    assert result["dd_result"]["risk_level"] == "Critical", result
+    assert result["dd_result"]["data_source_plan"]["operations"][0]["path"] == "/api/data-sources/{source_id}/sync", result
 
 
 def assert_external_partner_visibility_is_limited() -> None:
@@ -77,5 +97,6 @@ def assert_external_partner_visibility_is_limited() -> None:
 if __name__ == "__main__":
     assert_biz_ticket_can_reach_review()
     assert_dd_blocks_contract_review()
+    assert_dd_rulebook_rejects_critical_findings()
     assert_external_partner_visibility_is_limited()
-    print(json.dumps({"status": "pass", "checks": 3}, indent=2))
+    print(json.dumps({"status": "pass", "checks": 4}, indent=2))

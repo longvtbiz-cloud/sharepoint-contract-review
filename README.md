@@ -23,6 +23,7 @@ Implemented foundation:
 - Role-based access control with internal and external visibility rules.
 - Partner ticket normalization.
 - DD gate enforcement.
+- DD rulebook and data source sync planning.
 - Mandatory review matrix checks for initial trigger signals.
 - SharePoint folder and permission action planning.
 - Internal API contract registry for Admin, SharePoint, DD, Contract Review, and AI placeholders.
