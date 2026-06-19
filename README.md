@@ -110,6 +110,7 @@ Run deterministic validation checks without starting the server:
 $env:PYTHONIOENCODING='utf-8'
 $env:PYTHONUTF8='1'
 python scripts\validate_governance_flow.py
+pytest
 ```
 
 ## Deploy
