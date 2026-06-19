@@ -126,6 +126,12 @@ List reusable integration schemas:
 python scripts\list_schemas.py
 ```
 
+Export the OpenAPI integration scaffold:
+
+```powershell
+python scripts\export_openapi.py
+```
+
 ## Deploy
 
 Use `/agentbase-deploy` after local validation to build, push, and deploy to
