@@ -172,11 +172,56 @@ AGENT_CATALOG_SCHEMA: dict[str, Any] = {
 }
 
 
+TOPOLOGY_SCHEMA: dict[str, Any] = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://enterprise-partner-governance-platform.local/schemas/topology.json",
+    "title": "Governance Topology",
+    "type": "object",
+    "required": ["nodes", "edges"],
+    "properties": {
+        "nodes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id", "label", "kind"],
+                "properties": {
+                    "id": {"type": "string"},
+                    "label": {"type": "string"},
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "deterministic_agent",
+                            "llm_optional_agent",
+                            "runtime",
+                            "terminal_block_agent",
+                            "tool_node",
+                        ],
+                    },
+                },
+            },
+        },
+        "edges": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["source", "target"],
+                "properties": {
+                    "source": {"type": "string"},
+                    "target": {"type": "string"},
+                    "condition": {"type": "string"},
+                },
+            },
+        },
+    },
+}
+
+
 SCHEMAS: dict[str, dict[str, Any]] = {
     "agent_catalog": AGENT_CATALOG_SCHEMA,
     "invocation_payload": INVOCATION_PAYLOAD_SCHEMA,
     "governance_response": GOVERNANCE_RESPONSE_SCHEMA,
     "scenario_catalog": SCENARIO_CATALOG_SCHEMA,
+    "topology": TOPOLOGY_SCHEMA,
 }
 
 

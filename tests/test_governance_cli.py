@@ -34,6 +34,7 @@ def test_cli_artifacts_writes_expected_files(tmp_path) -> None:
         "invocation_payload",
         "governance_response",
         "scenario_catalog",
+        "topology",
     }
     assert openapi["openapi"] == "3.1.0"
 

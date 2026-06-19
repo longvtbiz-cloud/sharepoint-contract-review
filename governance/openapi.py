@@ -2,7 +2,12 @@ from copy import deepcopy
 from typing import Any
 
 from governance.contracts import all_api_contracts
-from governance.schemas import GOVERNANCE_RESPONSE_SCHEMA, INVOCATION_PAYLOAD_SCHEMA
+from governance.schemas import (
+    AGENT_CATALOG_SCHEMA,
+    GOVERNANCE_RESPONSE_SCHEMA,
+    INVOCATION_PAYLOAD_SCHEMA,
+    TOPOLOGY_SCHEMA,
+)
 
 
 def _operation_id(tag: str, name: str, method: str) -> str:
@@ -58,6 +63,34 @@ def build_openapi_spec() -> dict[str, Any]:
                 },
             }
         },
+        "/metadata/agents": {
+            "get": {
+                "tags": ["metadata"],
+                "operationId": "metadata_agents_get",
+                "summary": "Discover multi-agent responsibility metadata",
+                "responses": {
+                    "200": {
+                        "description": "Machine-readable multi-agent responsibility catalog.",
+                        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AgentCatalog"}}},
+                    }
+                },
+            }
+        },
+        "/metadata/topology": {
+            "get": {
+                "tags": ["metadata"],
+                "operationId": "metadata_topology_get",
+                "summary": "Discover LangGraph topology metadata",
+                "responses": {
+                    "200": {
+                        "description": "Machine-readable LangGraph node and edge topology.",
+                        "content": {
+                            "application/json": {"schema": {"$ref": "#/components/schemas/GovernanceTopology"}}
+                        },
+                    }
+                },
+            }
+        },
     }
 
     for tag, contracts in all_api_contracts().items():
@@ -92,6 +125,8 @@ def build_openapi_spec() -> dict[str, Any]:
         "paths": dict(sorted(paths.items())),
         "components": {
             "schemas": {
+                "AgentCatalog": deepcopy(AGENT_CATALOG_SCHEMA),
+                "GovernanceTopology": deepcopy(TOPOLOGY_SCHEMA),
                 "InvocationPayload": deepcopy(INVOCATION_PAYLOAD_SCHEMA),
                 "GovernanceResponse": deepcopy(GOVERNANCE_RESPONSE_SCHEMA),
             }

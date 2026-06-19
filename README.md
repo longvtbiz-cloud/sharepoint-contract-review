@@ -143,6 +143,9 @@ Export the OpenAPI integration scaffold:
 python scripts\governance_cli.py openapi
 ```
 
+The OpenAPI scaffold includes runtime, metadata discovery, and planned domain
+integration endpoints.
+
 List runtime configuration metadata:
 
 ```powershell

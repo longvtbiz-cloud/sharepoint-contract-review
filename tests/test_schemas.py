@@ -11,6 +11,7 @@ def test_schema_registry_exposes_core_contracts() -> None:
         "invocation_payload",
         "governance_response",
         "scenario_catalog",
+        "topology",
     }
     assert schemas["invocation_payload"]["$schema"] == "https://json-schema.org/draft/2020-12/schema"
 
