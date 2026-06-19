@@ -143,6 +143,13 @@ python scripts\governance_cli.py config
 python scripts\governance_cli.py config --check-mode runtime
 ```
 
+Export LangGraph topology metadata:
+
+```powershell
+python scripts\governance_cli.py topology
+python scripts\governance_cli.py topology --format mermaid --output artifacts\governance-topology.mmd
+```
+
 Write all integration artifacts to a folder:
 
 ```powershell
