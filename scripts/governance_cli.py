@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from governance.openapi import build_openapi_spec
+from governance.config import list_config_variables, validate_environment
 from governance.scenarios import list_scenarios
 from governance.schemas import list_schemas
 
@@ -39,9 +40,17 @@ def cmd_openapi(args: argparse.Namespace) -> None:
 
 def cmd_artifacts(args: argparse.Namespace) -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    _write_json({"config": list_config_variables()}, args.output_dir / "governance-config.json")
     _write_json({"scenarios": list_scenarios()}, args.output_dir / "governance-scenarios.json")
     _write_json({"schemas": list_schemas()}, args.output_dir / "governance-schemas.json")
     _write_json(build_openapi_spec(), args.output_dir / "governance-openapi.json")
+
+
+def cmd_config(args: argparse.Namespace) -> None:
+    payload = {"config": list_config_variables()}
+    if args.check_mode:
+        payload["validation"] = validate_environment(args.check_mode)
+    _write_json(payload, args.output)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -62,6 +71,11 @@ def build_parser() -> argparse.ArgumentParser:
     openapi_parser = subparsers.add_parser("openapi", help="Print or write the OpenAPI integration scaffold.")
     openapi_parser.add_argument("--output", type=Path)
     openapi_parser.set_defaults(func=cmd_openapi)
+
+    config_parser = subparsers.add_parser("config", help="Print or write runtime configuration metadata.")
+    config_parser.add_argument("--output", type=Path)
+    config_parser.add_argument("--check-mode", choices=["deploy", "runtime", "ai_summary", "agentbase_memory"])
+    config_parser.set_defaults(func=cmd_config)
 
     artifacts_parser = subparsers.add_parser("artifacts", help="Write scenarios, schemas, and OpenAPI JSON files.")
     artifacts_parser.add_argument("--output-dir", type=Path, default=Path("artifacts"))

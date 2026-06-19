@@ -136,6 +136,13 @@ Export the OpenAPI integration scaffold:
 python scripts\governance_cli.py openapi
 ```
 
+List runtime configuration metadata:
+
+```powershell
+python scripts\governance_cli.py config
+python scripts\governance_cli.py config --check-mode runtime
+```
+
 Write all integration artifacts to a folder:
 
 ```powershell

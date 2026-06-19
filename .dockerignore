@@ -4,6 +4,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .tools/
+artifacts/
 .env
 .env.*
 .greennode.json
