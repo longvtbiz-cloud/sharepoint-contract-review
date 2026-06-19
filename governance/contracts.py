@@ -99,6 +99,16 @@ AI_API_CONTRACTS = {
     "termination_checklist": "POST /api/ai/termination/checklist",
 }
 
+OFFICE365_API_CONTRACTS = {
+    "users": "GET /api/office365/users",
+    "groups": "GET /api/office365/groups",
+    "send_mail": "POST /api/office365/mail/send",
+    "calendar_reminders": "POST /api/office365/calendar/reminders",
+    "teams_notify": "POST /api/office365/teams/notify",
+    "sharepoint_library": "GET /api/office365/sharepoint/library",
+    "onedrive_reference": "GET /api/office365/onedrive/files/{file_id}",
+}
+
 
 def all_api_contracts() -> dict[str, Any]:
     return {
@@ -110,4 +120,5 @@ def all_api_contracts() -> dict[str, Any]:
         "partner_portal": PARTNER_PORTAL_API_CONTRACTS,
         "termination": TERMINATION_API_CONTRACTS,
         "ai": AI_API_CONTRACTS,
+        "office365": OFFICE365_API_CONTRACTS,
     }

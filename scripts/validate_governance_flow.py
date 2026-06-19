@@ -34,9 +34,12 @@ def assert_biz_ticket_can_reach_review() -> None:
     assert result["review_plan"]["status"] == "Ready", result
     assert result["review_plan"]["operations"][0]["path"] == "/api/contracts/rounds/create", result
     assert len(result["review_plan"]["reviewer_tasks"]) == 2, result
-    assert len(result["audit_events"]) == 6, result
+    assert len(result["audit_events"]) == 7, result
     assert result["sharepoint_plan"]["operations"][0]["path"] == "/api/sharepoint/folders/create", result
     assert result["api_contracts"]["sharepoint"]["create_folder"] == "POST /api/sharepoint/folders/create", result
+    assert result["office365_plan"]["status"] == "inactive_until_configured", result
+    assert "Mail.Send" in result["office365_plan"]["scopes"], result
+    assert result["api_contracts"]["office365"]["send_mail"] == "POST /api/office365/mail/send", result
     assert result["ai_plan"]["operations"][0]["path"] == "/api/ai/dd/analyze", result
     assert result["dashboard_snapshot"]["counters"]["contracts_in_review"] == 1, result
     assert result["dashboard_snapshot"]["reviews_by_department"]["Legal"] == 1, result
@@ -117,6 +120,7 @@ def assert_external_partner_visibility_is_limited() -> None:
     assert "audit_events" not in result, result
     assert "api_contracts" not in result, result
     assert "ai_plan" not in result, result
+    assert "office365_plan" not in result, result
     assert "dashboard_snapshot" not in result, result
     assert result["access_result"]["allowed"] is False, result
 

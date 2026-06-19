@@ -65,6 +65,7 @@ EXTERNAL_RESTRICTED_FIELDS = {
     "termination_plan",
     "ai_plan",
     "dashboard_snapshot",
+    "office365_plan",
 }
 
 

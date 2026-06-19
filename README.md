@@ -29,6 +29,7 @@ Implemented foundation:
 - Negotiation, Partner Portal Biz Gate, and Termination workflow planning.
 - AI connector operation planning for DD, contract review, negotiation, risk scoring, and termination checklist.
 - Dashboard snapshot generation for operational counters and review queues.
+- Office365/Microsoft Graph connector planning for users, groups, mail, calendar, Teams, SharePoint, and OneDrive.
 - SharePoint folder and permission action planning.
 - Internal API contract registry for Admin, SharePoint, DD, Contract Review, and AI placeholders.
 - Audit event generation across the deterministic workflow.
