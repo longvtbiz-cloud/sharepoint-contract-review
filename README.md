@@ -114,6 +114,10 @@ python scripts\validate_governance_flow.py
 pytest
 ```
 
+The GitHub Actions workflow in `.github/workflows/ci.yml` runs the same
+compile, smoke validation, artifact export, and pytest checks on push and pull
+request.
+
 List reusable API smoke-test scenarios:
 
 ```powershell
