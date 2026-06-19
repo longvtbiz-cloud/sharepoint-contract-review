@@ -31,6 +31,7 @@ from governance.agents.partner_portal import build_partner_portal_plan
 from governance.agents.policy import evaluate_critical_governance
 from governance.agents.rbac import evaluate_access, sanitize_response
 from governance.agents.sharepoint import build_sharepoint_plan
+from governance.agents.sla import build_sla_plan
 from governance.agents.termination import build_termination_plan
 from governance.contracts import all_api_contracts
 
@@ -106,6 +107,7 @@ class GovernanceState(TypedDict, total=False):
     termination_plan: dict[str, Any]
     ai_plan: dict[str, Any]
     office365_plan: dict[str, Any]
+    sla_plan: dict[str, Any]
     execution_plan: dict[str, Any]
     audit_plan: dict[str, Any]
     dashboard_snapshot: dict[str, Any]
@@ -297,6 +299,22 @@ def office365_agent(state: GovernanceState) -> GovernanceState:
     return {"office365_plan": office365_plan, "audit_events": [audit]}
 
 
+def sla_agent(state: GovernanceState) -> GovernanceState:
+    ticket = state["ticket"]
+    sla_plan = build_sla_plan(ticket, state.get("review_plan"))
+    audit = build_audit_event(
+        actor=ticket["created_by"],
+        role="SYSTEM",
+        action="sla.plan_prepared",
+        object_type="ticket",
+        object_id=ticket["ticket_id"],
+        before={},
+        after=sla_plan,
+        source="automation",
+    )
+    return {"sla_plan": sla_plan, "audit_events": [audit]}
+
+
 def execution_agent(state: GovernanceState) -> GovernanceState:
     execution_plan = build_execution_plan(dict(state))
     return {"execution_plan": execution_plan}
@@ -319,6 +337,7 @@ def dashboard_agent(state: GovernanceState) -> GovernanceState:
         negotiation_plan=state.get("negotiation_plan"),
         partner_portal_plan=state.get("partner_portal_plan"),
         termination_plan=state.get("termination_plan"),
+        sla_plan=state.get("sla_plan"),
         audit_events=state.get("audit_events", []),
         workflow_status=state.get("status", "draft"),
     )
@@ -379,6 +398,7 @@ def ai_summary_agent(state: GovernanceState) -> GovernanceState:
         "termination_plan": state.get("termination_plan", {}),
         "ai_plan": state.get("ai_plan", {}),
         "office365_plan": state.get("office365_plan", {}),
+        "sla_plan": state.get("sla_plan", {}),
         "execution_plan": state.get("execution_plan", {}),
         "audit_plan": state.get("audit_plan", {}),
         "dashboard_snapshot": state.get("dashboard_snapshot", {}),
@@ -441,6 +461,7 @@ graph_builder.add_node("sharepoint_agent", sharepoint_agent)
 graph_builder.add_node("lifecycle_agent", lifecycle_agent)
 graph_builder.add_node("ai_planning_agent", ai_planning_agent)
 graph_builder.add_node("office365_agent", office365_agent)
+graph_builder.add_node("sla_agent", sla_agent)
 graph_builder.add_node("execution_agent", execution_agent)
 graph_builder.add_node("audit_persistence_agent", audit_persistence_agent)
 graph_builder.add_node("dashboard_agent", dashboard_agent)
@@ -482,7 +503,8 @@ graph_builder.add_edge("contract_review_agent", "sharepoint_agent")
 graph_builder.add_edge("sharepoint_agent", "lifecycle_agent")
 graph_builder.add_edge("lifecycle_agent", "ai_planning_agent")
 graph_builder.add_edge("ai_planning_agent", "office365_agent")
-graph_builder.add_edge("office365_agent", "execution_agent")
+graph_builder.add_edge("office365_agent", "sla_agent")
+graph_builder.add_edge("sla_agent", "execution_agent")
 graph_builder.add_edge("execution_agent", "audit_persistence_agent")
 graph_builder.add_edge("audit_persistence_agent", "dashboard_agent")
 graph_builder.add_edge("dashboard_agent", "ai_summary_agent")
@@ -527,6 +549,7 @@ def handler(payload: dict, context: RequestContext) -> dict:
         "termination_plan": result.get("termination_plan"),
         "ai_plan": result.get("ai_plan"),
         "office365_plan": result.get("office365_plan"),
+        "sla_plan": result.get("sla_plan"),
         "execution_plan": result.get("execution_plan"),
         "audit_plan": result.get("audit_plan"),
         "dashboard_snapshot": result.get("dashboard_snapshot"),

@@ -11,6 +11,7 @@ PLAN_ORDER = [
     "termination_plan",
     "ai_plan",
     "office365_plan",
+    "sla_plan",
 ]
 
 

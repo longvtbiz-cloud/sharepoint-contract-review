@@ -34,12 +34,15 @@ def assert_biz_ticket_can_reach_review() -> None:
     assert result["review_plan"]["status"] == "Ready", result
     assert result["review_plan"]["operations"][0]["path"] == "/api/contracts/rounds/create", result
     assert len(result["review_plan"]["reviewer_tasks"]) == 2, result
-    assert len(result["audit_events"]) == 9, result
+    assert len(result["audit_events"]) == 10, result
     assert result["sharepoint_plan"]["operations"][0]["path"] == "/api/sharepoint/folders/create", result
     assert result["api_contracts"]["sharepoint"]["create_folder"] == "POST /api/sharepoint/folders/create", result
     assert result["office365_plan"]["status"] == "inactive_until_configured", result
     assert "Mail.Send" in result["office365_plan"]["scopes"], result
     assert result["api_contracts"]["office365"]["send_mail"] == "POST /api/office365/mail/send", result
+    assert result["sla_plan"]["status"] == "planned", result
+    assert result["sla_plan"]["operations"][0]["path"] == "/api/sla/review-tasks/schedule-reminders", result
+    assert result["api_contracts"]["sla"]["overdue_scan"] == "POST /api/sla/review-tasks/overdue-scan", result
     assert result["admin_plan"]["catalog"]["override_policy"]["requires_reason"] is True, result
     assert result["policy_result"]["allowed"] is True, result
     assert result["ai_plan"]["operations"][0]["path"] == "/api/ai/dd/analyze", result
@@ -108,6 +111,7 @@ def assert_missing_mandatory_department_blocks_round_readiness() -> None:
     assert result["workflow_status"] == "reviewer_selection_incomplete", result
     assert result["review_plan"]["status"] == "Reviewer Selection Incomplete", result
     assert result["review_plan"]["missing_mandatory_departments"] == ["PDPA"], result
+    assert result["sla_plan"]["status"] == "blocked_until_reviewer_selection_complete", result
 
 
 def assert_external_partner_visibility_is_limited() -> None:
@@ -129,6 +133,7 @@ def assert_external_partner_visibility_is_limited() -> None:
     assert "api_contracts" not in result, result
     assert "ai_plan" not in result, result
     assert "office365_plan" not in result, result
+    assert "sla_plan" not in result, result
     assert "admin_plan" not in result, result
     assert "execution_plan" not in result, result
     assert "audit_plan" not in result, result
@@ -251,6 +256,27 @@ def assert_override_requires_reason_and_risk_acceptance() -> None:
     assert "OVERRIDE_RISK_ACCEPTANCE_REQUIRED" in violation_codes, result
 
 
+def assert_high_priority_review_uses_short_sla() -> None:
+    result = invoke(
+        {
+            "action": "ticket.create",
+            "role": "BIZ_OWNER",
+            "ticket_id": "TCK-000012",
+            "partner_name": "Urgent Partner",
+            "project_case": "UrgentReview",
+            "created_by": "biz.user",
+            "priority": "Urgent",
+            "dd_status": "Pass",
+            "selected_departments": ["Legal", "FA"],
+            "contract_signals": ["contains_payment_terms"],
+        }
+    )
+    assert result["workflow_status"] == "ready_for_review", result
+    assert result["sla_plan"]["sla_hours"] == 24, result
+    assert result["sla_plan"]["operations"][1]["path"] == "/api/sla/review-tasks/escalations", result
+    assert result["execution_plan"]["steps"][-1]["source_plan"] == "sla_plan", result
+
+
 if __name__ == "__main__":
     assert_biz_ticket_can_reach_review()
     assert_dd_blocks_contract_review()
@@ -263,4 +289,5 @@ if __name__ == "__main__":
     assert_counterparty_send_requires_completed_internal_review()
     assert_signing_requires_final_approval()
     assert_override_requires_reason_and_risk_acceptance()
-    print(json.dumps({"status": "pass", "checks": 11}, indent=2))
+    assert_high_priority_review_uses_short_sla()
+    print(json.dumps({"status": "pass", "checks": 12}, indent=2))

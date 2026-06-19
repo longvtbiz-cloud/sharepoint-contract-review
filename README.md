@@ -30,6 +30,7 @@ Implemented foundation:
 - AI connector operation planning for DD, contract review, negotiation, risk scoring, and termination checklist.
 - Dashboard snapshot generation for operational counters and review queues.
 - Office365/Microsoft Graph connector planning for users, groups, mail, calendar, Teams, SharePoint, and OneDrive.
+- SLA, reminder, overdue scan, and department manager escalation planning for contract review tasks.
 - Dry-run execution plan that orders all planned API operations and requires audit logging per step.
 - Audit persistence planning for SharePoint `99_Audit_Trail` and Admin audit log append.
 - SharePoint folder and permission action planning.

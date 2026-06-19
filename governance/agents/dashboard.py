@@ -8,6 +8,7 @@ def build_dashboard_snapshot(
     negotiation_plan: dict[str, Any] | None,
     partner_portal_plan: dict[str, Any] | None,
     termination_plan: dict[str, Any] | None,
+    sla_plan: dict[str, Any] | None,
     audit_events: list[dict[str, Any]],
     workflow_status: str,
 ) -> dict[str, Any]:
@@ -21,7 +22,7 @@ def build_dashboard_snapshot(
         "dd_rejected": 1 if dd_status == "Reject" else 0,
         "dd_conditional_pass": 1 if dd_status == "Conditional Pass" else 0,
         "contracts_in_review": 1 if review_status in {"Ready", "Pending Review", "In Review"} else 0,
-        "overdue_review": 0,
+        "overdue_review": 1 if (sla_plan or {}).get("status") == "overdue" else 0,
         "negotiation_rounds_open": 1 if negotiation_plan else 0,
         "high_risk_partners": 1 if risk_level in {"High", "Critical"} else 0,
         "partner_requests_pending_biz_approval": 1 if partner_portal_plan else 0,
@@ -45,6 +46,7 @@ def build_dashboard_snapshot(
             "contract_review": review_status,
             "partner_request": (partner_portal_plan or {}).get("status"),
             "termination": (termination_plan or {}).get("status"),
+            "sla": (sla_plan or {}).get("status"),
         },
         "risk": {
             "level": risk_level,

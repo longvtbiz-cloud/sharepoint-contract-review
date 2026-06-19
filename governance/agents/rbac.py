@@ -67,6 +67,7 @@ EXTERNAL_RESTRICTED_FIELDS = {
     "ai_plan",
     "dashboard_snapshot",
     "office365_plan",
+    "sla_plan",
     "admin_plan",
     "policy_result",
     "execution_plan",

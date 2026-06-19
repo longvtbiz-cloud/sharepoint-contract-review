@@ -43,3 +43,7 @@ def test_signing_requires_final_approval() -> None:
 
 def test_override_requires_reason_and_risk_acceptance() -> None:
     flow.assert_override_requires_reason_and_risk_acceptance()
+
+
+def test_high_priority_review_uses_short_sla() -> None:
+    flow.assert_high_priority_review_uses_short_sla()

@@ -115,6 +115,13 @@ OFFICE365_API_CONTRACTS = {
 }
 
 
+SLA_API_CONTRACTS = {
+    "schedule_reminders": "POST /api/sla/review-tasks/schedule-reminders",
+    "configure_escalations": "POST /api/sla/review-tasks/escalations",
+    "overdue_scan": "POST /api/sla/review-tasks/overdue-scan",
+}
+
+
 def all_api_contracts() -> dict[str, Any]:
     return {
         "admin": ADMIN_API_CONTRACTS,
@@ -126,4 +133,5 @@ def all_api_contracts() -> dict[str, Any]:
         "termination": TERMINATION_API_CONTRACTS,
         "ai": AI_API_CONTRACTS,
         "office365": OFFICE365_API_CONTRACTS,
+        "sla": SLA_API_CONTRACTS,
     }
