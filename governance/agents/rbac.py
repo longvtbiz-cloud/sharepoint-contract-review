@@ -69,6 +69,7 @@ EXTERNAL_RESTRICTED_FIELDS = {
     "office365_plan",
     "admin_plan",
     "policy_result",
+    "execution_plan",
 }
 
 

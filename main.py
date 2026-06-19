@@ -23,6 +23,7 @@ from governance.agents.ai import build_ai_plan
 from governance.agents.contract_review import prepare_contract_review
 from governance.agents.dashboard import build_dashboard_snapshot
 from governance.agents.dd import evaluate_dd_gate
+from governance.agents.execution import build_execution_plan
 from governance.agents.intake import normalize_ticket
 from governance.agents.negotiation import build_negotiation_plan
 from governance.agents.office365 import build_office365_plan
@@ -105,6 +106,7 @@ class GovernanceState(TypedDict, total=False):
     termination_plan: dict[str, Any]
     ai_plan: dict[str, Any]
     office365_plan: dict[str, Any]
+    execution_plan: dict[str, Any]
     dashboard_snapshot: dict[str, Any]
     audit_events: Annotated[list[dict[str, Any]], operator.add]
     status: Literal["draft", "blocked", "ready_for_review", "reviewer_selection_incomplete"]
@@ -294,6 +296,11 @@ def office365_agent(state: GovernanceState) -> GovernanceState:
     return {"office365_plan": office365_plan, "audit_events": [audit]}
 
 
+def execution_agent(state: GovernanceState) -> GovernanceState:
+    execution_plan = build_execution_plan(dict(state))
+    return {"execution_plan": execution_plan}
+
+
 def dashboard_agent(state: GovernanceState) -> GovernanceState:
     snapshot = build_dashboard_snapshot(
         ticket=state["ticket"],
@@ -362,6 +369,7 @@ def ai_summary_agent(state: GovernanceState) -> GovernanceState:
         "termination_plan": state.get("termination_plan", {}),
         "ai_plan": state.get("ai_plan", {}),
         "office365_plan": state.get("office365_plan", {}),
+        "execution_plan": state.get("execution_plan", {}),
         "dashboard_snapshot": state.get("dashboard_snapshot", {}),
         "access_result": state.get("access_result", {}),
         "policy_result": state.get("policy_result", {}),
@@ -422,6 +430,7 @@ graph_builder.add_node("sharepoint_agent", sharepoint_agent)
 graph_builder.add_node("lifecycle_agent", lifecycle_agent)
 graph_builder.add_node("ai_planning_agent", ai_planning_agent)
 graph_builder.add_node("office365_agent", office365_agent)
+graph_builder.add_node("execution_agent", execution_agent)
 graph_builder.add_node("dashboard_agent", dashboard_agent)
 graph_builder.add_node("access_denied_agent", access_denied_agent)
 graph_builder.add_node("policy_blocked_agent", policy_blocked_agent)
@@ -461,7 +470,8 @@ graph_builder.add_edge("contract_review_agent", "sharepoint_agent")
 graph_builder.add_edge("sharepoint_agent", "lifecycle_agent")
 graph_builder.add_edge("lifecycle_agent", "ai_planning_agent")
 graph_builder.add_edge("ai_planning_agent", "office365_agent")
-graph_builder.add_edge("office365_agent", "dashboard_agent")
+graph_builder.add_edge("office365_agent", "execution_agent")
+graph_builder.add_edge("execution_agent", "dashboard_agent")
 graph_builder.add_edge("dashboard_agent", "ai_summary_agent")
 graph_builder.add_conditional_edges("ai_summary_agent", tools_condition)
 graph_builder.add_edge("tools", "ai_summary_agent")
@@ -504,6 +514,7 @@ def handler(payload: dict, context: RequestContext) -> dict:
         "termination_plan": result.get("termination_plan"),
         "ai_plan": result.get("ai_plan"),
         "office365_plan": result.get("office365_plan"),
+        "execution_plan": result.get("execution_plan"),
         "dashboard_snapshot": result.get("dashboard_snapshot"),
         "audit_events": result.get("audit_events", []),
         "api_contracts": all_api_contracts(),

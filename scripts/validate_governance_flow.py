@@ -45,6 +45,9 @@ def assert_biz_ticket_can_reach_review() -> None:
     assert result["ai_plan"]["operations"][0]["path"] == "/api/ai/dd/analyze", result
     assert result["dashboard_snapshot"]["counters"]["contracts_in_review"] == 1, result
     assert result["dashboard_snapshot"]["reviews_by_department"]["Legal"] == 1, result
+    assert result["execution_plan"]["status"] == "planned", result
+    assert result["execution_plan"]["total_steps"] > 0, result
+    assert result["execution_plan"]["steps"][0]["requires_audit_log"] is True, result
     assert result["api_contracts"]["ai"]["termination_checklist"] == "POST /api/ai/termination/checklist", result
 
 
@@ -124,6 +127,7 @@ def assert_external_partner_visibility_is_limited() -> None:
     assert "ai_plan" not in result, result
     assert "office365_plan" not in result, result
     assert "admin_plan" not in result, result
+    assert "execution_plan" not in result, result
     assert "dashboard_snapshot" not in result, result
     assert result["access_result"]["allowed"] is False, result
 
