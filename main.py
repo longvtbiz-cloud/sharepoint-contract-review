@@ -37,6 +37,7 @@ from governance.agent_catalog import list_agents
 from governance.contracts import all_api_contracts
 from governance.openapi import build_openapi_spec
 from governance.topology import build_mermaid, build_topology
+from governance.trace import build_decision_trace
 
 load_dotenv()
 
@@ -589,6 +590,7 @@ def handler(payload: dict, context: RequestContext) -> dict:
         "execution_plan": result.get("execution_plan"),
         "audit_plan": result.get("audit_plan"),
         "dashboard_snapshot": result.get("dashboard_snapshot"),
+        "decision_trace": build_decision_trace(result),
         "audit_events": result.get("audit_events", []),
         "api_contracts": all_api_contracts(),
         "workflow_status": result.get("status"),

@@ -104,6 +104,20 @@ GOVERNANCE_RESPONSE_SCHEMA: dict[str, Any] = {
         "execution_plan": {"type": ["object", "null"]},
         "audit_plan": {"type": ["object", "null"]},
         "dashboard_snapshot": {"type": ["object", "null"]},
+        "decision_trace": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["sequence", "gate", "decision", "status", "reasons"],
+                "properties": {
+                    "sequence": {"type": "integer"},
+                    "gate": {"type": "string"},
+                    "decision": {"type": "string"},
+                    "status": {"type": "string"},
+                    "reasons": {"type": "array", "items": {"type": "string"}},
+                },
+            },
+        },
         "audit_events": {"type": "array", "items": {"type": "object"}},
         "api_contracts": {"type": "object"},
         "workflow_status": {

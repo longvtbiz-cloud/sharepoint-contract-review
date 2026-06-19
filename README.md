@@ -33,6 +33,7 @@ Implemented foundation:
 - SLA, reminder, overdue scan, and department manager escalation planning for contract review tasks.
 - Dry-run execution plan that orders all planned API operations and requires audit logging per step.
 - Audit persistence planning for SharePoint `99_Audit_Trail` and Admin audit log append.
+- Decision trace generation for RBAC, policy, DD, review, SLA, execution, and audit gates.
 - SharePoint folder and permission action planning.
 - Internal API contract registry for Admin, SharePoint, DD, Contract Review, and AI placeholders.
 - Audit event generation across the deterministic workflow.

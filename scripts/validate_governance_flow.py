@@ -43,6 +43,8 @@ def assert_biz_ticket_can_reach_review() -> None:
     assert result["audit_plan"]["operations"][1]["path"] == "/api/admin/audit-logs", result
     assert result["audit_plan"]["step_audit_links"][0]["requires_audit_log"] is True, result
     assert result["api_contracts"]["ai"]["termination_checklist"] == "POST /api/ai/termination/checklist", result
+    assert result["decision_trace"][0]["gate"] == "rbac", result
+    assert result["decision_trace"][-1]["gate"] == "audit_persistence", result
 
 
 def assert_dd_blocks_contract_review() -> None:
@@ -82,6 +84,7 @@ def assert_external_partner_visibility_is_limited() -> None:
     assert "execution_plan" not in result, result
     assert "audit_plan" not in result, result
     assert "dashboard_snapshot" not in result, result
+    assert "decision_trace" not in result, result
     assert result["access_result"]["allowed"] is False, result
 
 
@@ -115,6 +118,7 @@ def assert_counterparty_send_requires_completed_internal_review() -> None:
     assert result["policy_result"]["allowed"] is False, result
     assert result["policy_result"]["violations"][0]["code"] == "NO_COUNTERPARTY_SEND_BEFORE_INTERNAL_REVIEW", result
     assert result.get("dd_result") is None, result
+    assert result["decision_trace"][-1]["gate"] == "critical_policy", result
 
 
 def assert_signing_requires_final_approval() -> None:
