@@ -37,16 +37,13 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
-        run: python scripts/validate_governance_flow.py
+        run: python scripts/governance_cli.py validate
 
       - name: Export integration artifacts
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
-        run: |
-          python scripts/list_scenarios.py > /tmp/governance-scenarios.json
-          python scripts/list_schemas.py > /tmp/governance-schemas.json
-          python scripts/export_openapi.py > /tmp/governance-openapi.json
+        run: python scripts/governance_cli.py artifacts --output-dir /tmp/governance-artifacts
 
       - name: Run pytest
         env:

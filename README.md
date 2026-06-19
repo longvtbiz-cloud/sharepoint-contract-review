@@ -110,7 +110,7 @@ Run deterministic validation checks without starting the server:
 ```powershell
 $env:PYTHONIOENCODING='utf-8'
 $env:PYTHONUTF8='1'
-python scripts\validate_governance_flow.py
+python scripts\governance_cli.py validate
 pytest
 ```
 
@@ -121,19 +121,25 @@ request.
 List reusable API smoke-test scenarios:
 
 ```powershell
-python scripts\list_scenarios.py
+python scripts\governance_cli.py scenarios
 ```
 
 List reusable integration schemas:
 
 ```powershell
-python scripts\list_schemas.py
+python scripts\governance_cli.py schemas
 ```
 
 Export the OpenAPI integration scaffold:
 
 ```powershell
-python scripts\export_openapi.py
+python scripts\governance_cli.py openapi
+```
+
+Write all integration artifacts to a folder:
+
+```powershell
+python scripts\governance_cli.py artifacts --output-dir artifacts
 ```
 
 Build the runtime container:

@@ -4,8 +4,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from governance.schemas import list_schemas
+from scripts.governance_cli import cmd_schemas
 
 
 if __name__ == "__main__":
-    print(json.dumps({"schemas": list_schemas()}, indent=2, ensure_ascii=False))
+    cmd_schemas(type("Args", (), {"output": None})())

@@ -139,7 +139,7 @@ def assert_high_priority_review_uses_short_sla() -> None:
     assert result["execution_plan"]["steps"][-1]["source_plan"] == "sla_plan", result
 
 
-if __name__ == "__main__":
+def run_all_checks() -> None:
     assert_biz_ticket_can_reach_review()
     assert_dd_blocks_contract_review()
     assert_dd_rulebook_rejects_critical_findings()
@@ -153,3 +153,7 @@ if __name__ == "__main__":
     assert_override_requires_reason_and_risk_acceptance()
     assert_high_priority_review_uses_short_sla()
     print(json.dumps({"status": "pass", "checks": 12}, indent=2))
+
+
+if __name__ == "__main__":
+    run_all_checks()
