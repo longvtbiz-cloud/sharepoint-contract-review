@@ -34,13 +34,14 @@ def assert_biz_ticket_can_reach_review() -> None:
     assert result["review_plan"]["status"] == "Ready", result
     assert result["review_plan"]["operations"][0]["path"] == "/api/contracts/rounds/create", result
     assert len(result["review_plan"]["reviewer_tasks"]) == 2, result
-    assert len(result["audit_events"]) == 8, result
+    assert len(result["audit_events"]) == 9, result
     assert result["sharepoint_plan"]["operations"][0]["path"] == "/api/sharepoint/folders/create", result
     assert result["api_contracts"]["sharepoint"]["create_folder"] == "POST /api/sharepoint/folders/create", result
     assert result["office365_plan"]["status"] == "inactive_until_configured", result
     assert "Mail.Send" in result["office365_plan"]["scopes"], result
     assert result["api_contracts"]["office365"]["send_mail"] == "POST /api/office365/mail/send", result
     assert result["admin_plan"]["catalog"]["override_policy"]["requires_reason"] is True, result
+    assert result["policy_result"]["allowed"] is True, result
     assert result["ai_plan"]["operations"][0]["path"] == "/api/ai/dd/analyze", result
     assert result["dashboard_snapshot"]["counters"]["contracts_in_review"] == 1, result
     assert result["dashboard_snapshot"]["reviews_by_department"]["Legal"] == 1, result
@@ -185,6 +186,63 @@ def assert_legal_admin_gets_full_governance_plan() -> None:
     assert result["api_contracts"]["admin"]["connectors"]["office365"] == "POST /api/admin/connectors/office365", result
 
 
+def assert_counterparty_send_requires_completed_internal_review() -> None:
+    result = invoke(
+        {
+            "action": "counterparty.send",
+            "role": "BIZ_OWNER",
+            "ticket_id": "TCK-000009",
+            "partner_name": "Negotiation Partner",
+            "project_case": "CounterpartySend",
+            "created_by": "biz.user",
+            "dd_status": "Pass",
+            "selected_departments": ["Legal"],
+            "internal_review_status": "In Review",
+        }
+    )
+    assert result["workflow_status"] == "blocked", result
+    assert result["policy_result"]["allowed"] is False, result
+    assert result["policy_result"]["violations"][0]["code"] == "NO_COUNTERPARTY_SEND_BEFORE_INTERNAL_REVIEW", result
+    assert result.get("dd_result") is None, result
+
+
+def assert_signing_requires_final_approval() -> None:
+    result = invoke(
+        {
+            "action": "signing.finalize",
+            "role": "LEGAL_MANAGER",
+            "ticket_id": "TCK-000010",
+            "partner_name": "Signing Partner",
+            "project_case": "FinalSigning",
+            "created_by": "legal.manager",
+            "dd_status": "Pass",
+            "selected_departments": ["Legal"],
+            "final_approval_status": "Pending",
+        }
+    )
+    assert result["workflow_status"] == "blocked", result
+    assert result["policy_result"]["violations"][0]["code"] == "NO_SIGNING_BEFORE_FINAL_APPROVAL", result
+
+
+def assert_override_requires_reason_and_risk_acceptance() -> None:
+    result = invoke(
+        {
+            "action": "workflow.override",
+            "role": "LEGAL_ADMIN",
+            "ticket_id": "TCK-000011",
+            "partner_name": "Override Partner",
+            "project_case": "OverrideCase",
+            "created_by": "legal.admin",
+            "dd_status": "Pending",
+            "selected_departments": ["Legal"],
+        }
+    )
+    violation_codes = {violation["code"] for violation in result["policy_result"]["violations"]}
+    assert result["workflow_status"] == "blocked", result
+    assert "OVERRIDE_REASON_REQUIRED" in violation_codes, result
+    assert "OVERRIDE_RISK_ACCEPTANCE_REQUIRED" in violation_codes, result
+
+
 if __name__ == "__main__":
     assert_biz_ticket_can_reach_review()
     assert_dd_blocks_contract_review()
@@ -194,4 +252,7 @@ if __name__ == "__main__":
     assert_partner_request_uses_biz_gate_and_limited_visibility()
     assert_termination_workflow_is_planned()
     assert_legal_admin_gets_full_governance_plan()
-    print(json.dumps({"status": "pass", "checks": 8}, indent=2))
+    assert_counterparty_send_requires_completed_internal_review()
+    assert_signing_requires_final_approval()
+    assert_override_requires_reason_and_risk_acceptance()
+    print(json.dumps({"status": "pass", "checks": 11}, indent=2))

@@ -20,6 +20,8 @@ def normalize_ticket(payload: dict[str, Any]) -> dict[str, Any]:
         "status": payload.get("status", "Draft"),
         "dd_status": payload.get("dd_status", "Pending"),
         "contract_review_status": payload.get("contract_review_status", "Not Started"),
+        "internal_review_status": payload.get("internal_review_status", "Not Started"),
+        "final_approval_status": payload.get("final_approval_status", "Not Started"),
         "current_round": int(payload.get("current_round", 0)),
         "action": payload.get("action", "ticket.create"),
         "sharepoint_folder_url": payload.get("sharepoint_folder_url", ""),
@@ -40,5 +42,7 @@ def normalize_ticket(payload: dict[str, Any]) -> dict[str, Any]:
         "partner_request_id": payload.get("partner_request_id", ""),
         "role": payload.get("role", ""),
         "termination_id": payload.get("termination_id", ""),
+        "override_reason": payload.get("override_reason", ""),
+        "risk_acceptance": payload.get("risk_acceptance", ""),
         "exception": payload.get("exception"),
     }

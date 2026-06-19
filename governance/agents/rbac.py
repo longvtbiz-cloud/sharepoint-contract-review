@@ -50,6 +50,7 @@ ACTION_ROLES = {
     "termination.create": {"LEGAL_ADMIN", "LEGAL_MANAGER", "BIZ_MANAGER", "BIZ_OWNER"},
     "admin.configure": {"LEGAL_ADMIN"},
     "workflow.override": {"LEGAL_ADMIN"},
+    "signing.finalize": {"LEGAL_ADMIN", "LEGAL_MANAGER"},
 }
 
 EXTERNAL_RESTRICTED_FIELDS = {
@@ -67,6 +68,7 @@ EXTERNAL_RESTRICTED_FIELDS = {
     "dashboard_snapshot",
     "office365_plan",
     "admin_plan",
+    "policy_result",
 }
 
 

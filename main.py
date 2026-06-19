@@ -27,6 +27,7 @@ from governance.agents.intake import normalize_ticket
 from governance.agents.negotiation import build_negotiation_plan
 from governance.agents.office365 import build_office365_plan
 from governance.agents.partner_portal import build_partner_portal_plan
+from governance.agents.policy import evaluate_critical_governance
 from governance.agents.rbac import evaluate_access, sanitize_response
 from governance.agents.sharepoint import build_sharepoint_plan
 from governance.agents.termination import build_termination_plan
@@ -95,6 +96,7 @@ class GovernanceState(TypedDict, total=False):
     ticket: dict[str, Any]
     access_result: dict[str, Any]
     admin_plan: dict[str, Any]
+    policy_result: dict[str, Any]
     dd_result: dict[str, Any]
     review_plan: dict[str, Any]
     sharepoint_plan: dict[str, Any]
@@ -157,6 +159,27 @@ def admin_governance_agent(state: GovernanceState) -> GovernanceState:
         source="automation",
     )
     return {"admin_plan": admin_plan, "audit_events": [audit]}
+
+
+def policy_agent(state: GovernanceState) -> GovernanceState:
+    ticket = state["ticket"]
+    access_result = state["access_result"]
+    policy_result = evaluate_critical_governance(ticket, access_result)
+    audit = build_audit_event(
+        actor=access_result["actor"],
+        role=access_result["role"],
+        action="policy.critical_governance_evaluated",
+        object_type="ticket",
+        object_id=ticket["ticket_id"],
+        before={},
+        after=policy_result,
+        source="automation",
+    )
+    return {
+        "policy_result": policy_result,
+        "audit_events": [audit],
+        "status": "draft" if policy_result["allowed"] else "blocked",
+    }
 
 
 def dd_gate_agent(state: GovernanceState) -> GovernanceState:
@@ -300,6 +323,19 @@ def access_denied_agent(state: GovernanceState) -> GovernanceState:
     }
 
 
+def policy_blocked_agent(state: GovernanceState) -> GovernanceState:
+    policy_result = state["policy_result"]
+    violations = "; ".join(violation["message"] for violation in policy_result.get("violations", []))
+    return {
+        "messages": [
+            SystemMessage(
+                content=f"Blocked by critical governance policy: {violations or 'No details provided.'}"
+            )
+        ],
+        "status": "blocked",
+    }
+
+
 def ai_summary_agent(state: GovernanceState) -> GovernanceState:
     if not LLM_MODEL or not LLM_BASE_URL or not LLM_API_KEY:
         return {
@@ -328,6 +364,7 @@ def ai_summary_agent(state: GovernanceState) -> GovernanceState:
         "office365_plan": state.get("office365_plan", {}),
         "dashboard_snapshot": state.get("dashboard_snapshot", {}),
         "access_result": state.get("access_result", {}),
+        "policy_result": state.get("policy_result", {}),
     }
     response = llm_with_tools.invoke(
         [
@@ -355,6 +392,12 @@ def route_after_rbac(state: GovernanceState) -> str:
     return "access_denied_agent"
 
 
+def route_after_policy(state: GovernanceState) -> str:
+    if state["policy_result"]["allowed"]:
+        return "dd_gate_agent"
+    return "policy_blocked_agent"
+
+
 def _latest_json_payload(state: GovernanceState) -> dict[str, Any]:
     for message in reversed(state.get("messages", [])):
         content = getattr(message, "content", "")
@@ -372,6 +415,7 @@ graph_builder = StateGraph(GovernanceState)
 graph_builder.add_node("intake_agent", intake_agent)
 graph_builder.add_node("rbac_agent", rbac_agent)
 graph_builder.add_node("admin_governance_agent", admin_governance_agent)
+graph_builder.add_node("policy_agent", policy_agent)
 graph_builder.add_node("dd_gate_agent", dd_gate_agent)
 graph_builder.add_node("contract_review_agent", contract_review_agent)
 graph_builder.add_node("sharepoint_agent", sharepoint_agent)
@@ -380,6 +424,7 @@ graph_builder.add_node("ai_planning_agent", ai_planning_agent)
 graph_builder.add_node("office365_agent", office365_agent)
 graph_builder.add_node("dashboard_agent", dashboard_agent)
 graph_builder.add_node("access_denied_agent", access_denied_agent)
+graph_builder.add_node("policy_blocked_agent", policy_blocked_agent)
 graph_builder.add_node("ai_summary_agent", ai_summary_agent)
 graph_builder.add_node("tools", ToolNode([remember_governance_fact, recall_governance_context]))
 
@@ -393,8 +438,17 @@ graph_builder.add_conditional_edges(
         "access_denied_agent": "access_denied_agent",
     },
 )
-graph_builder.add_edge("admin_governance_agent", "dd_gate_agent")
+graph_builder.add_edge("admin_governance_agent", "policy_agent")
+graph_builder.add_conditional_edges(
+    "policy_agent",
+    route_after_policy,
+    {
+        "dd_gate_agent": "dd_gate_agent",
+        "policy_blocked_agent": "policy_blocked_agent",
+    },
+)
 graph_builder.add_edge("access_denied_agent", "ai_summary_agent")
+graph_builder.add_edge("policy_blocked_agent", "ai_summary_agent")
 graph_builder.add_conditional_edges(
     "dd_gate_agent",
     route_after_dd,
@@ -441,6 +495,7 @@ def handler(payload: dict, context: RequestContext) -> dict:
         "ticket": result.get("ticket"),
         "access_result": result.get("access_result"),
         "admin_plan": result.get("admin_plan"),
+        "policy_result": result.get("policy_result"),
         "dd_result": result.get("dd_result"),
         "review_plan": result.get("review_plan"),
         "sharepoint_plan": result.get("sharepoint_plan"),
