@@ -70,6 +70,7 @@ EXTERNAL_RESTRICTED_FIELDS = {
     "admin_plan",
     "policy_result",
     "execution_plan",
+    "audit_plan",
 }
 
 

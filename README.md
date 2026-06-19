@@ -31,6 +31,7 @@ Implemented foundation:
 - Dashboard snapshot generation for operational counters and review queues.
 - Office365/Microsoft Graph connector planning for users, groups, mail, calendar, Teams, SharePoint, and OneDrive.
 - Dry-run execution plan that orders all planned API operations and requires audit logging per step.
+- Audit persistence planning for SharePoint `99_Audit_Trail` and Admin audit log append.
 - SharePoint folder and permission action planning.
 - Internal API contract registry for Admin, SharePoint, DD, Contract Review, and AI placeholders.
 - Audit event generation across the deterministic workflow.

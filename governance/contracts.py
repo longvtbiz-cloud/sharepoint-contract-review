@@ -33,6 +33,7 @@ ADMIN_API_CONTRACTS = {
     },
     "audit_logs": {
         "list": "GET /api/admin/audit-logs",
+        "append": "POST /api/admin/audit-logs",
     },
     "connectors": {
         "office365": "POST /api/admin/connectors/office365",
