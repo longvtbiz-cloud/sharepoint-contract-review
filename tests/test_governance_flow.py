@@ -47,3 +47,25 @@ def test_override_requires_reason_and_risk_acceptance() -> None:
 
 def test_high_priority_review_uses_short_sla() -> None:
     flow.assert_high_priority_review_uses_short_sla()
+
+
+def test_metadata_agents_action_returns_catalog() -> None:
+    result = flow.invoke({"action": "metadata.agents"})
+
+    assert result["metadata_kind"] == "agents"
+    assert result["agents"][0]["id"] == "intake_agent"
+
+
+def test_metadata_topology_action_can_return_mermaid() -> None:
+    result = flow.invoke({"action": "metadata.topology", "format": "mermaid"})
+
+    assert result["metadata_kind"] == "topology"
+    assert result["topology"]["nodes"][0]["id"] == "START"
+    assert result["mermaid"].startswith("flowchart TD")
+
+
+def test_metadata_openapi_action_returns_spec() -> None:
+    result = flow.invoke({"action": "metadata.openapi"})
+
+    assert result["metadata_kind"] == "openapi"
+    assert result["openapi"]["openapi"] == "3.1.0"

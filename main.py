@@ -33,7 +33,10 @@ from governance.agents.rbac import evaluate_access, sanitize_response
 from governance.agents.sharepoint import build_sharepoint_plan
 from governance.agents.sla import build_sla_plan
 from governance.agents.termination import build_termination_plan
+from governance.agent_catalog import list_agents
 from governance.contracts import all_api_contracts
+from governance.openapi import build_openapi_spec
+from governance.topology import build_mermaid, build_topology
 
 load_dotenv()
 
@@ -450,6 +453,35 @@ def _latest_json_payload(state: GovernanceState) -> dict[str, Any]:
     return {}
 
 
+def _metadata_response(payload: dict[str, Any]) -> dict[str, Any] | None:
+    action = payload.get("action")
+    if action == "metadata.agents":
+        return {
+            "status": "success",
+            "metadata_kind": "agents",
+            "agents": list_agents(),
+            "timestamp": _utc_now(),
+        }
+    if action == "metadata.topology":
+        response = {
+            "status": "success",
+            "metadata_kind": "topology",
+            "topology": build_topology(),
+            "timestamp": _utc_now(),
+        }
+        if payload.get("format") == "mermaid":
+            response["mermaid"] = build_mermaid()
+        return response
+    if action == "metadata.openapi":
+        return {
+            "status": "success",
+            "metadata_kind": "openapi",
+            "openapi": build_openapi_spec(),
+            "timestamp": _utc_now(),
+        }
+    return None
+
+
 graph_builder = StateGraph(GovernanceState)
 graph_builder.add_node("intake_agent", intake_agent)
 graph_builder.add_node("rbac_agent", rbac_agent)
@@ -517,6 +549,10 @@ graph = graph_builder.compile(checkpointer=checkpointer) if checkpointer else gr
 
 @app.entrypoint
 def handler(payload: dict, context: RequestContext) -> dict:
+    metadata_response = _metadata_response(payload if isinstance(payload, dict) else {})
+    if metadata_response:
+        return metadata_response
+
     if MEMORY_ID and (not context.user_id or not context.session_id):
         return {
             "status": "error",

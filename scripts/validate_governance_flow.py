@@ -139,6 +139,20 @@ def assert_high_priority_review_uses_short_sla() -> None:
     assert result["execution_plan"]["steps"][-1]["source_plan"] == "sla_plan", result
 
 
+def assert_metadata_actions_return_discovery_payloads() -> None:
+    agents = invoke({"action": "metadata.agents"})
+    topology = invoke({"action": "metadata.topology", "format": "mermaid"})
+    openapi = invoke({"action": "metadata.openapi"})
+
+    assert agents["metadata_kind"] == "agents", agents
+    assert agents["agents"][0]["id"] == "intake_agent", agents
+    assert topology["metadata_kind"] == "topology", topology
+    assert topology["topology"]["nodes"][0]["id"] == "START", topology
+    assert topology["mermaid"].startswith("flowchart TD"), topology
+    assert openapi["metadata_kind"] == "openapi", openapi
+    assert openapi["openapi"]["openapi"] == "3.1.0", openapi
+
+
 def run_all_checks() -> None:
     assert_biz_ticket_can_reach_review()
     assert_dd_blocks_contract_review()
@@ -152,7 +166,8 @@ def run_all_checks() -> None:
     assert_signing_requires_final_approval()
     assert_override_requires_reason_and_risk_acceptance()
     assert_high_priority_review_uses_short_sla()
-    print(json.dumps({"status": "pass", "checks": 12}, indent=2))
+    assert_metadata_actions_return_discovery_payloads()
+    print(json.dumps({"status": "pass", "checks": 13}, indent=2))
 
 
 if __name__ == "__main__":

@@ -105,6 +105,18 @@ curl -X POST http://127.0.0.1:8080/invocations `
   -d "{\"ticket_id\":\"TCK-000001\",\"partner_name\":\"Haidilao\",\"tax_code\":\"123456789\",\"project_case\":\"DieuChinhPhi\",\"created_by\":\"biz.user\",\"dd_status\":\"Pass\",\"selected_departments\":[\"Legal\",\"FA\"],\"contract_signals\":[\"contains_payment_terms\"]}"
 ```
 
+Discover runtime metadata through read-only invocation actions:
+
+```powershell
+curl -X POST http://127.0.0.1:8080/invocations `
+  -H "Content-Type: application/json" `
+  -d "{\"action\":\"metadata.agents\"}"
+
+curl -X POST http://127.0.0.1:8080/invocations `
+  -H "Content-Type: application/json" `
+  -d "{\"action\":\"metadata.topology\",\"format\":\"mermaid\"}"
+```
+
 Run deterministic validation checks without starting the server:
 
 ```powershell
