@@ -6,6 +6,7 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import main
+from governance.scenarios import scenario_payload
 
 
 def invoke(payload: dict) -> dict:
@@ -14,20 +15,7 @@ def invoke(payload: dict) -> dict:
 
 
 def assert_biz_ticket_can_reach_review() -> None:
-    result = invoke(
-        {
-            "action": "ticket.create",
-            "role": "BIZ_OWNER",
-            "ticket_id": "TCK-000001",
-            "partner_name": "Haidilao",
-            "tax_code": "123456789",
-            "project_case": "DieuChinhPhi",
-            "created_by": "biz.user",
-            "dd_status": "Pass",
-            "selected_departments": ["Legal", "FA"],
-            "contract_signals": ["contains_payment_terms"],
-        }
-    )
+    result = invoke(scenario_payload("biz_review_ready"))
     assert result["workflow_status"] == "ready_for_review", result
     assert result["dd_result"]["contract_review_allowed"] is True, result
     assert result["dd_result"]["risk_level"] == "Unknown", result
@@ -58,36 +46,14 @@ def assert_biz_ticket_can_reach_review() -> None:
 
 
 def assert_dd_blocks_contract_review() -> None:
-    result = invoke(
-        {
-            "action": "ticket.create",
-            "role": "BIZ_OWNER",
-            "ticket_id": "TCK-000003",
-            "partner_name": "Blocked Partner",
-            "project_case": "NewCooperation",
-            "created_by": "biz.user",
-            "dd_status": "Pending",
-            "selected_departments": ["Legal"],
-        }
-    )
+    result = invoke(scenario_payload("dd_pending_blocks_review"))
     assert result["workflow_status"] == "blocked", result
     assert result["dd_result"]["contract_review_allowed"] is False, result
     assert result.get("review_plan") is None, result
 
 
 def assert_dd_rulebook_rejects_critical_findings() -> None:
-    result = invoke(
-        {
-            "action": "ticket.create",
-            "role": "BIZ_OWNER",
-            "ticket_id": "TCK-000004",
-            "partner_name": "Critical Partner",
-            "project_case": "NewCooperation",
-            "created_by": "biz.user",
-            "dd_findings": ["sanctions_match"],
-            "selected_departments": ["Legal"],
-        }
-    )
+    result = invoke(scenario_payload("dd_critical_findings_reject"))
     assert result["workflow_status"] == "blocked", result
     assert result["dd_result"]["dd_status"] == "Reject", result
     assert result["dd_result"]["risk_level"] == "Critical", result
@@ -95,19 +61,7 @@ def assert_dd_rulebook_rejects_critical_findings() -> None:
 
 
 def assert_missing_mandatory_department_blocks_round_readiness() -> None:
-    result = invoke(
-        {
-            "action": "ticket.create",
-            "role": "BIZ_OWNER",
-            "ticket_id": "TCK-000005",
-            "partner_name": "Missing Reviewer Partner",
-            "project_case": "PersonalDataProject",
-            "created_by": "biz.user",
-            "dd_status": "Pass",
-            "selected_departments": ["Legal"],
-            "contract_signals": ["contains_personal_data"],
-        }
-    )
+    result = invoke(scenario_payload("mandatory_department_missing"))
     assert result["workflow_status"] == "reviewer_selection_incomplete", result
     assert result["review_plan"]["status"] == "Reviewer Selection Incomplete", result
     assert result["review_plan"]["missing_mandatory_departments"] == ["PDPA"], result
@@ -115,17 +69,7 @@ def assert_missing_mandatory_department_blocks_round_readiness() -> None:
 
 
 def assert_external_partner_visibility_is_limited() -> None:
-    result = invoke(
-        {
-            "action": "ticket.create",
-            "role": "EXTERNAL_PARTNER",
-            "ticket_id": "TCK-000002",
-            "partner_name": "External Co",
-            "project_case": "PartnerRequest",
-            "created_by": "partner.user",
-            "dd_status": "Pending",
-        }
-    )
+    result = invoke(scenario_payload("external_partner_limited"))
     assert result["workflow_status"] == "blocked", result
     assert result["visibility"] == "external_limited", result
     assert "dd_result" not in result, result
@@ -142,18 +86,7 @@ def assert_external_partner_visibility_is_limited() -> None:
 
 
 def assert_partner_request_uses_biz_gate_and_limited_visibility() -> None:
-    result = invoke(
-        {
-            "action": "partner.request.submit",
-            "role": "EXTERNAL_PARTNER",
-            "ticket_id": "TCK-000006",
-            "ticket_type": "Partner Request",
-            "partner_name": "External Co",
-            "project_case": "PartnerQuestion",
-            "created_by": "partner.user",
-            "dd_status": "Pending",
-        }
-    )
+    result = invoke(scenario_payload("partner_request_biz_gate"))
     assert result["workflow_status"] == "blocked", result
     assert result["visibility"] == "external_limited", result
     assert result["partner_portal_plan"]["biz_gate"]["stage"] == "Biz Preliminary Assessment", result
@@ -161,19 +94,7 @@ def assert_partner_request_uses_biz_gate_and_limited_visibility() -> None:
 
 
 def assert_termination_workflow_is_planned() -> None:
-    result = invoke(
-        {
-            "action": "termination.create",
-            "role": "BIZ_MANAGER",
-            "ticket_id": "TCK-000007",
-            "ticket_type": "Termination",
-            "partner_name": "Closing Partner",
-            "project_case": "TerminationCase",
-            "created_by": "biz.manager",
-            "dd_status": "Pass",
-            "selected_departments": ["Legal"],
-        }
-    )
+    result = invoke(scenario_payload("termination_planned"))
     assert result["termination_plan"]["operations"][0]["path"] == "/api/termination/workflows/create", result
     assert result["termination_plan"]["stages"][-1] == "Archive", result
     assert result["api_contracts"]["termination"]["archive"] == "POST /api/termination/workflows/{termination_id}/archive", result
@@ -182,37 +103,14 @@ def assert_termination_workflow_is_planned() -> None:
 
 
 def assert_legal_admin_gets_full_governance_plan() -> None:
-    result = invoke(
-        {
-            "action": "admin.configure",
-            "role": "LEGAL_ADMIN",
-            "ticket_id": "TCK-000008",
-            "partner_name": "Admin Managed Partner",
-            "project_case": "GovernanceSetup",
-            "created_by": "legal.admin",
-            "dd_status": "Pass",
-            "selected_departments": ["Legal"],
-        }
-    )
+    result = invoke(scenario_payload("legal_admin_governance"))
     assert result["admin_plan"]["legal_admin_full_access"] is True, result
     assert result["admin_plan"]["operations"][1]["path"] == "/api/admin/users", result
     assert result["api_contracts"]["admin"]["connectors"]["office365"] == "POST /api/admin/connectors/office365", result
 
 
 def assert_counterparty_send_requires_completed_internal_review() -> None:
-    result = invoke(
-        {
-            "action": "counterparty.send",
-            "role": "BIZ_OWNER",
-            "ticket_id": "TCK-000009",
-            "partner_name": "Negotiation Partner",
-            "project_case": "CounterpartySend",
-            "created_by": "biz.user",
-            "dd_status": "Pass",
-            "selected_departments": ["Legal"],
-            "internal_review_status": "In Review",
-        }
-    )
+    result = invoke(scenario_payload("counterparty_send_policy_block"))
     assert result["workflow_status"] == "blocked", result
     assert result["policy_result"]["allowed"] is False, result
     assert result["policy_result"]["violations"][0]["code"] == "NO_COUNTERPARTY_SEND_BEFORE_INTERNAL_REVIEW", result
@@ -220,36 +118,13 @@ def assert_counterparty_send_requires_completed_internal_review() -> None:
 
 
 def assert_signing_requires_final_approval() -> None:
-    result = invoke(
-        {
-            "action": "signing.finalize",
-            "role": "LEGAL_MANAGER",
-            "ticket_id": "TCK-000010",
-            "partner_name": "Signing Partner",
-            "project_case": "FinalSigning",
-            "created_by": "legal.manager",
-            "dd_status": "Pass",
-            "selected_departments": ["Legal"],
-            "final_approval_status": "Pending",
-        }
-    )
+    result = invoke(scenario_payload("signing_policy_block"))
     assert result["workflow_status"] == "blocked", result
     assert result["policy_result"]["violations"][0]["code"] == "NO_SIGNING_BEFORE_FINAL_APPROVAL", result
 
 
 def assert_override_requires_reason_and_risk_acceptance() -> None:
-    result = invoke(
-        {
-            "action": "workflow.override",
-            "role": "LEGAL_ADMIN",
-            "ticket_id": "TCK-000011",
-            "partner_name": "Override Partner",
-            "project_case": "OverrideCase",
-            "created_by": "legal.admin",
-            "dd_status": "Pending",
-            "selected_departments": ["Legal"],
-        }
-    )
+    result = invoke(scenario_payload("override_policy_block"))
     violation_codes = {violation["code"] for violation in result["policy_result"]["violations"]}
     assert result["workflow_status"] == "blocked", result
     assert "OVERRIDE_REASON_REQUIRED" in violation_codes, result
@@ -257,20 +132,7 @@ def assert_override_requires_reason_and_risk_acceptance() -> None:
 
 
 def assert_high_priority_review_uses_short_sla() -> None:
-    result = invoke(
-        {
-            "action": "ticket.create",
-            "role": "BIZ_OWNER",
-            "ticket_id": "TCK-000012",
-            "partner_name": "Urgent Partner",
-            "project_case": "UrgentReview",
-            "created_by": "biz.user",
-            "priority": "Urgent",
-            "dd_status": "Pass",
-            "selected_departments": ["Legal", "FA"],
-            "contract_signals": ["contains_payment_terms"],
-        }
-    )
+    result = invoke(scenario_payload("urgent_review_short_sla"))
     assert result["workflow_status"] == "ready_for_review", result
     assert result["sla_plan"]["sla_hours"] == 24, result
     assert result["sla_plan"]["operations"][1]["path"] == "/api/sla/review-tasks/escalations", result

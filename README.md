@@ -114,6 +114,12 @@ python scripts\validate_governance_flow.py
 pytest
 ```
 
+List reusable API smoke-test scenarios:
+
+```powershell
+python scripts\list_scenarios.py
+```
+
 ## Deploy
 
 Use `/agentbase-deploy` after local validation to build, push, and deploy to
