@@ -64,6 +64,7 @@ EXTERNAL_RESTRICTED_FIELDS = {
     "negotiation_plan",
     "termination_plan",
     "ai_plan",
+    "dashboard_snapshot",
 }
 
 

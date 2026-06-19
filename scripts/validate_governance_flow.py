@@ -38,6 +38,8 @@ def assert_biz_ticket_can_reach_review() -> None:
     assert result["sharepoint_plan"]["operations"][0]["path"] == "/api/sharepoint/folders/create", result
     assert result["api_contracts"]["sharepoint"]["create_folder"] == "POST /api/sharepoint/folders/create", result
     assert result["ai_plan"]["operations"][0]["path"] == "/api/ai/dd/analyze", result
+    assert result["dashboard_snapshot"]["counters"]["contracts_in_review"] == 1, result
+    assert result["dashboard_snapshot"]["reviews_by_department"]["Legal"] == 1, result
     assert result["api_contracts"]["ai"]["termination_checklist"] == "POST /api/ai/termination/checklist", result
 
 
@@ -115,6 +117,7 @@ def assert_external_partner_visibility_is_limited() -> None:
     assert "audit_events" not in result, result
     assert "api_contracts" not in result, result
     assert "ai_plan" not in result, result
+    assert "dashboard_snapshot" not in result, result
     assert result["access_result"]["allowed"] is False, result
 
 
@@ -155,6 +158,7 @@ def assert_termination_workflow_is_planned() -> None:
     assert result["termination_plan"]["stages"][-1] == "Archive", result
     assert result["api_contracts"]["termination"]["archive"] == "POST /api/termination/workflows/{termination_id}/archive", result
     assert result["ai_plan"]["operations"][-1]["path"] == "/api/ai/termination/checklist", result
+    assert result["dashboard_snapshot"]["counters"]["termination_pending"] == 1, result
 
 
 if __name__ == "__main__":
