@@ -34,6 +34,10 @@ ADMIN_API_CONTRACTS = {
     "audit_logs": {
         "list": "GET /api/admin/audit-logs",
     },
+    "connectors": {
+        "office365": "POST /api/admin/connectors/office365",
+        "sharepoint_mapping": "POST /api/admin/sharepoint-mapping",
+    },
 }
 
 SHAREPOINT_API_CONTRACTS = {

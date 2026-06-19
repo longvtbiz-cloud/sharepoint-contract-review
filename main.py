@@ -17,6 +17,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 
+from governance.agents.admin import build_admin_governance_plan
 from governance.agents.audit import build_audit_event
 from governance.agents.ai import build_ai_plan
 from governance.agents.contract_review import prepare_contract_review
@@ -93,6 +94,7 @@ class GovernanceState(TypedDict, total=False):
     messages: Annotated[list[BaseMessage], add_messages]
     ticket: dict[str, Any]
     access_result: dict[str, Any]
+    admin_plan: dict[str, Any]
     dd_result: dict[str, Any]
     review_plan: dict[str, Any]
     sharepoint_plan: dict[str, Any]
@@ -138,6 +140,23 @@ def rbac_agent(state: GovernanceState) -> GovernanceState:
     )
     status = "draft" if access_result["allowed"] else "blocked"
     return {"access_result": access_result, "audit_events": [audit], "status": status}
+
+
+def admin_governance_agent(state: GovernanceState) -> GovernanceState:
+    ticket = state["ticket"]
+    access_result = state["access_result"]
+    admin_plan = build_admin_governance_plan(ticket, access_result)
+    audit = build_audit_event(
+        actor=access_result["actor"],
+        role=access_result["role"],
+        action="admin.governance_plan_prepared",
+        object_type="ticket",
+        object_id=ticket["ticket_id"],
+        before={},
+        after=admin_plan,
+        source="automation",
+    )
+    return {"admin_plan": admin_plan, "audit_events": [audit]}
 
 
 def dd_gate_agent(state: GovernanceState) -> GovernanceState:
@@ -298,6 +317,7 @@ def ai_summary_agent(state: GovernanceState) -> GovernanceState:
     llm_with_tools = llm.bind_tools([remember_governance_fact, recall_governance_context])
     prompt = {
         "ticket": state.get("ticket", {}),
+        "admin_plan": state.get("admin_plan", {}),
         "dd_result": state.get("dd_result", {}),
         "review_plan": state.get("review_plan", {}),
         "sharepoint_plan": state.get("sharepoint_plan", {}),
@@ -351,6 +371,7 @@ def _latest_json_payload(state: GovernanceState) -> dict[str, Any]:
 graph_builder = StateGraph(GovernanceState)
 graph_builder.add_node("intake_agent", intake_agent)
 graph_builder.add_node("rbac_agent", rbac_agent)
+graph_builder.add_node("admin_governance_agent", admin_governance_agent)
 graph_builder.add_node("dd_gate_agent", dd_gate_agent)
 graph_builder.add_node("contract_review_agent", contract_review_agent)
 graph_builder.add_node("sharepoint_agent", sharepoint_agent)
@@ -368,10 +389,11 @@ graph_builder.add_conditional_edges(
     "rbac_agent",
     route_after_rbac,
     {
-        "dd_gate_agent": "dd_gate_agent",
+        "dd_gate_agent": "admin_governance_agent",
         "access_denied_agent": "access_denied_agent",
     },
 )
+graph_builder.add_edge("admin_governance_agent", "dd_gate_agent")
 graph_builder.add_edge("access_denied_agent", "ai_summary_agent")
 graph_builder.add_conditional_edges(
     "dd_gate_agent",
@@ -418,6 +440,7 @@ def handler(payload: dict, context: RequestContext) -> dict:
         "status": "success",
         "ticket": result.get("ticket"),
         "access_result": result.get("access_result"),
+        "admin_plan": result.get("admin_plan"),
         "dd_result": result.get("dd_result"),
         "review_plan": result.get("review_plan"),
         "sharepoint_plan": result.get("sharepoint_plan"),
