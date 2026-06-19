@@ -136,6 +136,13 @@ Export the OpenAPI integration scaffold:
 python scripts\export_openapi.py
 ```
 
+Build the runtime container:
+
+```powershell
+docker build -t enterprise-partner-governance-platform:local .
+docker run --rm -p 8080:8080 --env-file .env enterprise-partner-governance-platform:local
+```
+
 ## Deploy
 
 Use `/agentbase-deploy` after local validation to build, push, and deploy to

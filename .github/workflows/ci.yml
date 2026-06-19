@@ -53,3 +53,6 @@ jobs:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
         run: pytest
+
+      - name: Build runtime container
+        run: docker build -t enterprise-partner-governance-platform:ci .
