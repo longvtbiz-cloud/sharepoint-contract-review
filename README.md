@@ -120,6 +120,12 @@ List reusable API smoke-test scenarios:
 python scripts\list_scenarios.py
 ```
 
+List reusable integration schemas:
+
+```powershell
+python scripts\list_schemas.py
+```
+
 ## Deploy
 
 Use `/agentbase-deploy` after local validation to build, push, and deploy to
