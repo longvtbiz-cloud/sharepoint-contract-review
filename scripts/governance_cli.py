@@ -5,8 +5,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from governance.openapi import build_openapi_spec
+from governance.agent_catalog import list_agents
 from governance.config import list_config_variables, validate_environment
+from governance.openapi import build_openapi_spec
 from governance.scenarios import list_scenarios
 from governance.schemas import list_schemas
 from governance.topology import build_mermaid, build_topology
@@ -35,12 +36,17 @@ def cmd_schemas(args: argparse.Namespace) -> None:
     _write_json({"schemas": list_schemas()}, args.output)
 
 
+def cmd_agents(args: argparse.Namespace) -> None:
+    _write_json({"agents": list_agents()}, args.output)
+
+
 def cmd_openapi(args: argparse.Namespace) -> None:
     _write_json(build_openapi_spec(), args.output)
 
 
 def cmd_artifacts(args: argparse.Namespace) -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    _write_json({"agents": list_agents()}, args.output_dir / "governance-agents.json")
     _write_json({"config": list_config_variables()}, args.output_dir / "governance-config.json")
     _write_json({"topology": build_topology()}, args.output_dir / "governance-topology.json")
     (args.output_dir / "governance-topology.mmd").write_text(build_mermaid(), encoding="utf-8")
@@ -82,6 +88,10 @@ def build_parser() -> argparse.ArgumentParser:
     schemas_parser = subparsers.add_parser("schemas", help="Print or write integration JSON schemas.")
     schemas_parser.add_argument("--output", type=Path)
     schemas_parser.set_defaults(func=cmd_schemas)
+
+    agents_parser = subparsers.add_parser("agents", help="Print or write multi-agent responsibility metadata.")
+    agents_parser.add_argument("--output", type=Path)
+    agents_parser.set_defaults(func=cmd_agents)
 
     openapi_parser = subparsers.add_parser("openapi", help="Print or write the OpenAPI integration scaffold.")
     openapi_parser.add_argument("--output", type=Path)

@@ -130,6 +130,13 @@ List reusable integration schemas:
 python scripts\governance_cli.py schemas
 ```
 
+List multi-agent responsibility metadata:
+
+```powershell
+python scripts\governance_cli.py agents
+python scripts\governance_cli.py agents --output artifacts\governance-agents.json
+```
+
 Export the OpenAPI integration scaffold:
 
 ```powershell

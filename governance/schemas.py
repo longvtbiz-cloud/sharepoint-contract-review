@@ -144,7 +144,36 @@ SCENARIO_CATALOG_SCHEMA: dict[str, Any] = {
 }
 
 
+AGENT_CATALOG_SCHEMA: dict[str, Any] = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://enterprise-partner-governance-platform.local/schemas/agent-catalog.json",
+    "title": "Governance Agent Catalog",
+    "type": "object",
+    "required": ["agents"],
+    "properties": {
+        "agents": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id", "label", "purpose", "owns", "reads", "writes", "handoffs", "guardrails"],
+                "properties": {
+                    "id": {"type": "string"},
+                    "label": {"type": "string"},
+                    "purpose": {"type": "string"},
+                    "owns": {"type": "array", "items": {"type": "string"}},
+                    "reads": {"type": "array", "items": {"type": "string"}},
+                    "writes": {"type": "array", "items": {"type": "string"}},
+                    "handoffs": {"type": "array", "items": {"type": "string"}},
+                    "guardrails": {"type": "array", "items": {"type": "string"}},
+                },
+            },
+        }
+    },
+}
+
+
 SCHEMAS: dict[str, dict[str, Any]] = {
+    "agent_catalog": AGENT_CATALOG_SCHEMA,
     "invocation_payload": INVOCATION_PAYLOAD_SCHEMA,
     "governance_response": GOVERNANCE_RESPONSE_SCHEMA,
     "scenario_catalog": SCENARIO_CATALOG_SCHEMA,

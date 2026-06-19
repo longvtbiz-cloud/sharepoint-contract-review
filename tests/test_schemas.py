@@ -6,7 +6,12 @@ from scripts.validate_governance_flow import invoke
 def test_schema_registry_exposes_core_contracts() -> None:
     schemas = list_schemas()
 
-    assert set(schemas) == {"invocation_payload", "governance_response", "scenario_catalog"}
+    assert set(schemas) == {
+        "agent_catalog",
+        "invocation_payload",
+        "governance_response",
+        "scenario_catalog",
+    }
     assert schemas["invocation_payload"]["$schema"] == "https://json-schema.org/draft/2020-12/schema"
 
 
