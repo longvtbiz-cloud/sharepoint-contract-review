@@ -17,6 +17,7 @@ def test_cli_parser_exposes_expected_commands() -> None:
         "config",
         "topology",
         "artifacts",
+        "dashboard",
     ]:
         args = parser.parse_args([command])
         assert args.command == command
@@ -81,6 +82,16 @@ def test_cli_contract_check_writes_output_file(tmp_path) -> None:
     assert payload["status"] == "pass"
     assert payload["checks"] == 14
     assert payload["failed"] == 0
+
+
+def test_cli_dashboard_writes_data_file(tmp_path) -> None:
+    args = build_parser().parse_args(["dashboard", "--output-dir", str(tmp_path)])
+
+    args.func(args)
+
+    payload = json.loads((tmp_path / "data.json").read_text(encoding="utf-8"))
+    assert payload["summary"]["scenario_count"] == 12
+    assert payload["agents"][0]["id"] == "intake_agent"
 
 
 def test_cli_config_writes_validation_result(tmp_path) -> None:

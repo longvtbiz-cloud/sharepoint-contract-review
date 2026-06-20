@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from governance.agent_catalog import list_agents
 from governance.config import list_config_variables, validate_environment
+from governance.dashboard_data import build_dashboard_data
 from governance.openapi import build_openapi_spec
 from governance.scenarios import list_scenarios
 from governance.schemas import list_schemas
@@ -95,6 +96,11 @@ def cmd_artifacts(args: argparse.Namespace) -> None:
     _write_json(build_openapi_spec(), args.output_dir / "governance-openapi.json")
 
 
+def cmd_dashboard(args: argparse.Namespace) -> None:
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    _write_json(build_dashboard_data(), args.output_dir / "data.json")
+
+
 def cmd_config(args: argparse.Namespace) -> None:
     payload = {"config": list_config_variables()}
     if args.check_mode:
@@ -155,6 +161,10 @@ def build_parser() -> argparse.ArgumentParser:
     artifacts_parser = subparsers.add_parser("artifacts", help="Write scenarios, schemas, and OpenAPI JSON files.")
     artifacts_parser.add_argument("--output-dir", type=Path, default=Path("artifacts"))
     artifacts_parser.set_defaults(func=cmd_artifacts)
+
+    dashboard_parser = subparsers.add_parser("dashboard", help="Refresh local dashboard data.")
+    dashboard_parser.add_argument("--output-dir", type=Path, default=Path("dashboard"))
+    dashboard_parser.set_defaults(func=cmd_dashboard)
 
     return parser
 

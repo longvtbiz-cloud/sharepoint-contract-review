@@ -1,0 +1,1716 @@
+{
+  "summary": {
+    "scenario_count": 12,
+    "agent_count": 18,
+    "topology_node_count": 20,
+    "topology_edge_count": 23,
+    "api_contract_count": 68,
+    "openapi_path_count": 65,
+    "schema_count": 5,
+    "workflow_counts": {
+      "ready_for_review": 4,
+      "blocked": 7,
+      "reviewer_selection_incomplete": 1
+    },
+    "risk_counts": {
+      "Unknown": 6,
+      "Critical": 1,
+      "Hidden": 5
+    }
+  },
+  "scenarios": [
+    {
+      "scenario_id": "biz_review_ready",
+      "title": "Biz ticket can reach contract review",
+      "partner_name": "Haidilao",
+      "action": "ticket.create",
+      "role": "BIZ_OWNER",
+      "expected_workflow_status": "ready_for_review",
+      "actual_workflow_status": "ready_for_review",
+      "risk_level": "Unknown",
+      "audit_event_count": 10,
+      "execution_steps": 30,
+      "decision_trace": [
+        {
+          "sequence": 1,
+          "gate": "rbac",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 2,
+          "gate": "critical_policy",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 3,
+          "gate": "dd_gate",
+          "decision": "allow_contract_review",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 4,
+          "gate": "review_matrix",
+          "decision": "ready",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 5,
+          "gate": "sla",
+          "decision": "planned",
+          "status": "planned",
+          "reasons": [
+            "SLA hours: 48"
+          ]
+        },
+        {
+          "sequence": 6,
+          "gate": "execution",
+          "decision": "dry_run",
+          "status": "planned",
+          "reasons": [
+            "Planned steps: 30"
+          ]
+        },
+        {
+          "sequence": 7,
+          "gate": "audit_persistence",
+          "decision": "planned",
+          "status": "planned",
+          "reasons": [
+            "Audit events: 10"
+          ]
+        }
+      ],
+      "dashboard_snapshot": {
+        "ticket_id": "TCK-000001",
+        "workflow_status": "ready_for_review",
+        "counters": {
+          "open_tickets": 1,
+          "pending_dd": 0,
+          "dd_rejected": 0,
+          "dd_conditional_pass": 0,
+          "contracts_in_review": 1,
+          "overdue_review": 0,
+          "negotiation_rounds_open": 0,
+          "high_risk_partners": 0,
+          "partner_requests_pending_biz_approval": 0,
+          "termination_pending": 0,
+          "signed_contracts_this_month": 0
+        },
+        "reviews_by_department": {
+          "FA": 1,
+          "Legal": 1
+        },
+        "queues": {
+          "dd": "Pass",
+          "contract_review": "Ready",
+          "partner_request": null,
+          "termination": null,
+          "sla": "planned"
+        },
+        "risk": {
+          "level": "Unknown",
+          "matched_rules": []
+        },
+        "audit_event_count": 10
+      },
+      "visibility": "internal"
+    },
+    {
+      "scenario_id": "dd_pending_blocks_review",
+      "title": "Pending DD blocks contract review",
+      "partner_name": "Blocked Partner",
+      "action": "ticket.create",
+      "role": "BIZ_OWNER",
+      "expected_workflow_status": "blocked",
+      "actual_workflow_status": "blocked",
+      "risk_level": "Unknown",
+      "audit_event_count": 9,
+      "execution_steps": 20,
+      "decision_trace": [
+        {
+          "sequence": 1,
+          "gate": "rbac",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 2,
+          "gate": "critical_policy",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 3,
+          "gate": "dd_gate",
+          "decision": "block_contract_review",
+          "status": "blocked",
+          "reasons": [
+            "DD gate blocks contract review."
+          ]
+        },
+        {
+          "sequence": 4,
+          "gate": "sla",
+          "decision": "no_review_tasks",
+          "status": "attention_required",
+          "reasons": []
+        },
+        {
+          "sequence": 5,
+          "gate": "execution",
+          "decision": "dry_run",
+          "status": "planned",
+          "reasons": [
+            "Planned steps: 20"
+          ]
+        },
+        {
+          "sequence": 6,
+          "gate": "audit_persistence",
+          "decision": "planned",
+          "status": "planned",
+          "reasons": [
+            "Audit events: 9"
+          ]
+        }
+      ],
+      "dashboard_snapshot": {
+        "ticket_id": "TCK-000003",
+        "workflow_status": "blocked",
+        "counters": {
+          "open_tickets": 1,
+          "pending_dd": 1,
+          "dd_rejected": 0,
+          "dd_conditional_pass": 0,
+          "contracts_in_review": 0,
+          "overdue_review": 0,
+          "negotiation_rounds_open": 0,
+          "high_risk_partners": 0,
+          "partner_requests_pending_biz_approval": 0,
+          "termination_pending": 0,
+          "signed_contracts_this_month": 0
+        },
+        "reviews_by_department": {},
+        "queues": {
+          "dd": "Pending",
+          "contract_review": "Not Started",
+          "partner_request": null,
+          "termination": null,
+          "sla": "no_review_tasks"
+        },
+        "risk": {
+          "level": "Unknown",
+          "matched_rules": []
+        },
+        "audit_event_count": 9
+      },
+      "visibility": "internal"
+    },
+    {
+      "scenario_id": "dd_critical_findings_reject",
+      "title": "Critical DD findings reject the partner",
+      "partner_name": "Critical Partner",
+      "action": "ticket.create",
+      "role": "BIZ_OWNER",
+      "expected_workflow_status": "blocked",
+      "actual_workflow_status": "blocked",
+      "risk_level": "Critical",
+      "audit_event_count": 9,
+      "execution_steps": 20,
+      "decision_trace": [
+        {
+          "sequence": 1,
+          "gate": "rbac",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 2,
+          "gate": "critical_policy",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 3,
+          "gate": "dd_gate",
+          "decision": "block_contract_review",
+          "status": "blocked",
+          "reasons": [
+            "DD gate blocks contract review."
+          ]
+        },
+        {
+          "sequence": 4,
+          "gate": "sla",
+          "decision": "no_review_tasks",
+          "status": "attention_required",
+          "reasons": []
+        },
+        {
+          "sequence": 5,
+          "gate": "execution",
+          "decision": "dry_run",
+          "status": "planned",
+          "reasons": [
+            "Planned steps: 20"
+          ]
+        },
+        {
+          "sequence": 6,
+          "gate": "audit_persistence",
+          "decision": "planned",
+          "status": "planned",
+          "reasons": [
+            "Audit events: 9"
+          ]
+        }
+      ],
+      "dashboard_snapshot": {
+        "ticket_id": "TCK-000004",
+        "workflow_status": "blocked",
+        "counters": {
+          "open_tickets": 1,
+          "pending_dd": 0,
+          "dd_rejected": 1,
+          "dd_conditional_pass": 0,
+          "contracts_in_review": 0,
+          "overdue_review": 0,
+          "negotiation_rounds_open": 0,
+          "high_risk_partners": 1,
+          "partner_requests_pending_biz_approval": 0,
+          "termination_pending": 0,
+          "signed_contracts_this_month": 0
+        },
+        "reviews_by_department": {},
+        "queues": {
+          "dd": "Reject",
+          "contract_review": "Not Started",
+          "partner_request": null,
+          "termination": null,
+          "sla": "no_review_tasks"
+        },
+        "risk": {
+          "level": "Critical",
+          "matched_rules": [
+            {
+              "finding": "sanctions_match",
+              "severity": "Critical"
+            }
+          ]
+        },
+        "audit_event_count": 9
+      },
+      "visibility": "internal"
+    },
+    {
+      "scenario_id": "mandatory_department_missing",
+      "title": "Missing mandatory department blocks review readiness",
+      "partner_name": "Missing Reviewer Partner",
+      "action": "ticket.create",
+      "role": "BIZ_OWNER",
+      "expected_workflow_status": "reviewer_selection_incomplete",
+      "actual_workflow_status": "reviewer_selection_incomplete",
+      "risk_level": "Unknown",
+      "audit_event_count": 10,
+      "execution_steps": 27,
+      "decision_trace": [
+        {
+          "sequence": 1,
+          "gate": "rbac",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 2,
+          "gate": "critical_policy",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 3,
+          "gate": "dd_gate",
+          "decision": "allow_contract_review",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 4,
+          "gate": "review_matrix",
+          "decision": "needs_reviewer_selection",
+          "status": "attention_required",
+          "reasons": [
+            "Missing mandatory departments: PDPA"
+          ]
+        },
+        {
+          "sequence": 5,
+          "gate": "sla",
+          "decision": "blocked_until_reviewer_selection_complete",
+          "status": "attention_required",
+          "reasons": []
+        },
+        {
+          "sequence": 6,
+          "gate": "execution",
+          "decision": "dry_run",
+          "status": "planned",
+          "reasons": [
+            "Planned steps: 27"
+          ]
+        },
+        {
+          "sequence": 7,
+          "gate": "audit_persistence",
+          "decision": "planned",
+          "status": "planned",
+          "reasons": [
+            "Audit events: 10"
+          ]
+        }
+      ],
+      "dashboard_snapshot": {
+        "ticket_id": "TCK-000005",
+        "workflow_status": "reviewer_selection_incomplete",
+        "counters": {
+          "open_tickets": 1,
+          "pending_dd": 0,
+          "dd_rejected": 0,
+          "dd_conditional_pass": 0,
+          "contracts_in_review": 0,
+          "overdue_review": 0,
+          "negotiation_rounds_open": 0,
+          "high_risk_partners": 0,
+          "partner_requests_pending_biz_approval": 0,
+          "termination_pending": 0,
+          "signed_contracts_this_month": 0
+        },
+        "reviews_by_department": {
+          "Legal": 1,
+          "PDPA": 1
+        },
+        "queues": {
+          "dd": "Pass",
+          "contract_review": "Reviewer Selection Incomplete",
+          "partner_request": null,
+          "termination": null,
+          "sla": "blocked_until_reviewer_selection_complete"
+        },
+        "risk": {
+          "level": "Unknown",
+          "matched_rules": []
+        },
+        "audit_event_count": 10
+      },
+      "visibility": "internal"
+    },
+    {
+      "scenario_id": "external_partner_limited",
+      "title": "External partner sees limited blocked response",
+      "partner_name": "External Co",
+      "action": "ticket.create",
+      "role": "EXTERNAL_PARTNER",
+      "expected_workflow_status": "blocked",
+      "actual_workflow_status": "blocked",
+      "risk_level": null,
+      "audit_event_count": 0,
+      "execution_steps": 0,
+      "decision_trace": [],
+      "dashboard_snapshot": {},
+      "visibility": "external_limited"
+    },
+    {
+      "scenario_id": "partner_request_biz_gate",
+      "title": "Partner request starts at Biz preliminary gate",
+      "partner_name": "External Co",
+      "action": "partner.request.submit",
+      "role": "EXTERNAL_PARTNER",
+      "expected_workflow_status": "blocked",
+      "actual_workflow_status": "blocked",
+      "risk_level": null,
+      "audit_event_count": 0,
+      "execution_steps": 0,
+      "decision_trace": [],
+      "dashboard_snapshot": {},
+      "visibility": "external_limited"
+    },
+    {
+      "scenario_id": "termination_planned",
+      "title": "Termination workflow is planned",
+      "partner_name": "Closing Partner",
+      "action": "termination.create",
+      "role": "BIZ_MANAGER",
+      "expected_workflow_status": "ready_for_review",
+      "actual_workflow_status": "ready_for_review",
+      "risk_level": "Unknown",
+      "audit_event_count": 11,
+      "execution_steps": 33,
+      "decision_trace": [
+        {
+          "sequence": 1,
+          "gate": "rbac",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 2,
+          "gate": "critical_policy",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 3,
+          "gate": "dd_gate",
+          "decision": "allow_contract_review",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 4,
+          "gate": "review_matrix",
+          "decision": "ready",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 5,
+          "gate": "sla",
+          "decision": "planned",
+          "status": "planned",
+          "reasons": [
+            "SLA hours: 48"
+          ]
+        },
+        {
+          "sequence": 6,
+          "gate": "execution",
+          "decision": "dry_run",
+          "status": "planned",
+          "reasons": [
+            "Planned steps: 33"
+          ]
+        },
+        {
+          "sequence": 7,
+          "gate": "audit_persistence",
+          "decision": "planned",
+          "status": "planned",
+          "reasons": [
+            "Audit events: 11"
+          ]
+        }
+      ],
+      "dashboard_snapshot": {
+        "ticket_id": "TCK-000007",
+        "workflow_status": "ready_for_review",
+        "counters": {
+          "open_tickets": 1,
+          "pending_dd": 0,
+          "dd_rejected": 0,
+          "dd_conditional_pass": 0,
+          "contracts_in_review": 1,
+          "overdue_review": 0,
+          "negotiation_rounds_open": 0,
+          "high_risk_partners": 0,
+          "partner_requests_pending_biz_approval": 0,
+          "termination_pending": 1,
+          "signed_contracts_this_month": 0
+        },
+        "reviews_by_department": {
+          "Legal": 1
+        },
+        "queues": {
+          "dd": "Pass",
+          "contract_review": "Ready",
+          "partner_request": null,
+          "termination": "Planned",
+          "sla": "planned"
+        },
+        "risk": {
+          "level": "Unknown",
+          "matched_rules": []
+        },
+        "audit_event_count": 11
+      },
+      "visibility": "internal"
+    },
+    {
+      "scenario_id": "legal_admin_governance",
+      "title": "Legal admin receives full governance plan",
+      "partner_name": "Admin Managed Partner",
+      "action": "admin.configure",
+      "role": "LEGAL_ADMIN",
+      "expected_workflow_status": "ready_for_review",
+      "actual_workflow_status": "ready_for_review",
+      "risk_level": "Unknown",
+      "audit_event_count": 10,
+      "execution_steps": 36,
+      "decision_trace": [
+        {
+          "sequence": 1,
+          "gate": "rbac",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 2,
+          "gate": "critical_policy",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 3,
+          "gate": "dd_gate",
+          "decision": "allow_contract_review",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 4,
+          "gate": "review_matrix",
+          "decision": "ready",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 5,
+          "gate": "sla",
+          "decision": "planned",
+          "status": "planned",
+          "reasons": [
+            "SLA hours: 48"
+          ]
+        },
+        {
+          "sequence": 6,
+          "gate": "execution",
+          "decision": "dry_run",
+          "status": "planned",
+          "reasons": [
+            "Planned steps: 36"
+          ]
+        },
+        {
+          "sequence": 7,
+          "gate": "audit_persistence",
+          "decision": "planned",
+          "status": "planned",
+          "reasons": [
+            "Audit events: 10"
+          ]
+        }
+      ],
+      "dashboard_snapshot": {
+        "ticket_id": "TCK-000008",
+        "workflow_status": "ready_for_review",
+        "counters": {
+          "open_tickets": 1,
+          "pending_dd": 0,
+          "dd_rejected": 0,
+          "dd_conditional_pass": 0,
+          "contracts_in_review": 1,
+          "overdue_review": 0,
+          "negotiation_rounds_open": 0,
+          "high_risk_partners": 0,
+          "partner_requests_pending_biz_approval": 0,
+          "termination_pending": 0,
+          "signed_contracts_this_month": 0
+        },
+        "reviews_by_department": {
+          "Legal": 1
+        },
+        "queues": {
+          "dd": "Pass",
+          "contract_review": "Ready",
+          "partner_request": null,
+          "termination": null,
+          "sla": "planned"
+        },
+        "risk": {
+          "level": "Unknown",
+          "matched_rules": []
+        },
+        "audit_event_count": 10
+      },
+      "visibility": "internal"
+    },
+    {
+      "scenario_id": "counterparty_send_policy_block",
+      "title": "Counterparty send requires completed internal review",
+      "partner_name": "Negotiation Partner",
+      "action": "counterparty.send",
+      "role": "BIZ_OWNER",
+      "expected_workflow_status": "blocked",
+      "actual_workflow_status": "blocked",
+      "risk_level": null,
+      "audit_event_count": 4,
+      "execution_steps": 0,
+      "decision_trace": [
+        {
+          "sequence": 1,
+          "gate": "rbac",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 2,
+          "gate": "critical_policy",
+          "decision": "block",
+          "status": "blocked",
+          "reasons": [
+            "No completed internal review -> No sending to counterparty."
+          ]
+        }
+      ],
+      "dashboard_snapshot": {},
+      "visibility": "internal"
+    },
+    {
+      "scenario_id": "signing_policy_block",
+      "title": "Signing requires final approval",
+      "partner_name": "Signing Partner",
+      "action": "signing.finalize",
+      "role": "LEGAL_MANAGER",
+      "expected_workflow_status": "blocked",
+      "actual_workflow_status": "blocked",
+      "risk_level": null,
+      "audit_event_count": 4,
+      "execution_steps": 0,
+      "decision_trace": [
+        {
+          "sequence": 1,
+          "gate": "rbac",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 2,
+          "gate": "critical_policy",
+          "decision": "block",
+          "status": "blocked",
+          "reasons": [
+            "No final approval -> No signing."
+          ]
+        }
+      ],
+      "dashboard_snapshot": {},
+      "visibility": "internal"
+    },
+    {
+      "scenario_id": "override_policy_block",
+      "title": "Override requires reason and risk acceptance",
+      "partner_name": "Override Partner",
+      "action": "workflow.override",
+      "role": "LEGAL_ADMIN",
+      "expected_workflow_status": "blocked",
+      "actual_workflow_status": "blocked",
+      "risk_level": null,
+      "audit_event_count": 4,
+      "execution_steps": 0,
+      "decision_trace": [
+        {
+          "sequence": 1,
+          "gate": "rbac",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 2,
+          "gate": "critical_policy",
+          "decision": "block",
+          "status": "blocked",
+          "reasons": [
+            "Every override must have a reason.",
+            "Every override must include risk acceptance."
+          ]
+        }
+      ],
+      "dashboard_snapshot": {},
+      "visibility": "internal"
+    },
+    {
+      "scenario_id": "urgent_review_short_sla",
+      "title": "Urgent review uses short SLA",
+      "partner_name": "Urgent Partner",
+      "action": "ticket.create",
+      "role": "BIZ_OWNER",
+      "expected_workflow_status": "ready_for_review",
+      "actual_workflow_status": "ready_for_review",
+      "risk_level": "Unknown",
+      "audit_event_count": 10,
+      "execution_steps": 30,
+      "decision_trace": [
+        {
+          "sequence": 1,
+          "gate": "rbac",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 2,
+          "gate": "critical_policy",
+          "decision": "allow",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 3,
+          "gate": "dd_gate",
+          "decision": "allow_contract_review",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 4,
+          "gate": "review_matrix",
+          "decision": "ready",
+          "status": "passed",
+          "reasons": []
+        },
+        {
+          "sequence": 5,
+          "gate": "sla",
+          "decision": "planned",
+          "status": "planned",
+          "reasons": [
+            "SLA hours: 24"
+          ]
+        },
+        {
+          "sequence": 6,
+          "gate": "execution",
+          "decision": "dry_run",
+          "status": "planned",
+          "reasons": [
+            "Planned steps: 30"
+          ]
+        },
+        {
+          "sequence": 7,
+          "gate": "audit_persistence",
+          "decision": "planned",
+          "status": "planned",
+          "reasons": [
+            "Audit events: 10"
+          ]
+        }
+      ],
+      "dashboard_snapshot": {
+        "ticket_id": "TCK-000012",
+        "workflow_status": "ready_for_review",
+        "counters": {
+          "open_tickets": 1,
+          "pending_dd": 0,
+          "dd_rejected": 0,
+          "dd_conditional_pass": 0,
+          "contracts_in_review": 1,
+          "overdue_review": 0,
+          "negotiation_rounds_open": 0,
+          "high_risk_partners": 0,
+          "partner_requests_pending_biz_approval": 0,
+          "termination_pending": 0,
+          "signed_contracts_this_month": 0
+        },
+        "reviews_by_department": {
+          "FA": 1,
+          "Legal": 1
+        },
+        "queues": {
+          "dd": "Pass",
+          "contract_review": "Ready",
+          "partner_request": null,
+          "termination": null,
+          "sla": "planned"
+        },
+        "risk": {
+          "level": "Unknown",
+          "matched_rules": []
+        },
+        "audit_event_count": 10
+      },
+      "visibility": "internal"
+    }
+  ],
+  "agents": [
+    {
+      "id": "intake_agent",
+      "label": "Intake Agent",
+      "purpose": "Normalize raw partner lifecycle requests into the canonical ticket state.",
+      "owns": [
+        "ticket"
+      ],
+      "reads": [
+        "invocation_payload"
+      ],
+      "writes": [
+        "ticket",
+        "audit_events"
+      ],
+      "handoffs": [
+        "rbac_agent"
+      ],
+      "guardrails": [
+        "Require ticket_id, partner_name, project_case, created_by."
+      ]
+    },
+    {
+      "id": "rbac_agent",
+      "label": "RBAC Agent",
+      "purpose": "Authorize the actor role and action before any workflow mutation.",
+      "owns": [
+        "access_result",
+        "visibility"
+      ],
+      "reads": [
+        "role",
+        "action",
+        "ticket"
+      ],
+      "writes": [
+        "access_result",
+        "audit_events"
+      ],
+      "handoffs": [
+        "admin_governance_agent",
+        "access_denied_agent"
+      ],
+      "guardrails": [
+        "External partner roles only receive external_limited visibility."
+      ]
+    },
+    {
+      "id": "admin_governance_agent",
+      "label": "Admin Governance Agent",
+      "purpose": "Plan admin-center setup for users, departments, review matrix, DD rules, and connectors.",
+      "owns": [
+        "admin_plan"
+      ],
+      "reads": [
+        "ticket",
+        "access_result"
+      ],
+      "writes": [
+        "admin_plan",
+        "api_contracts",
+        "audit_events"
+      ],
+      "handoffs": [
+        "policy_agent"
+      ],
+      "guardrails": [
+        "Admin changes remain planned until execution is explicitly approved."
+      ]
+    },
+    {
+      "id": "policy_agent",
+      "label": "Critical Policy Agent",
+      "purpose": "Enforce critical enterprise governance policies before DD and review work begins.",
+      "owns": [
+        "policy_result"
+      ],
+      "reads": [
+        "ticket",
+        "override_reason",
+        "risk_acceptance"
+      ],
+      "writes": [
+        "policy_result",
+        "audit_events"
+      ],
+      "handoffs": [
+        "dd_gate_agent",
+        "policy_blocked_agent"
+      ],
+      "guardrails": [
+        "No override is accepted without a reason and risk acceptance trail."
+      ]
+    },
+    {
+      "id": "dd_gate_agent",
+      "label": "DD Gate Agent",
+      "purpose": "Apply the No DD Pass -> No Contract Review rule.",
+      "owns": [
+        "dd_result",
+        "workflow_status"
+      ],
+      "reads": [
+        "dd_status",
+        "dd_findings",
+        "policy_result"
+      ],
+      "writes": [
+        "dd_result",
+        "workflow_status",
+        "audit_events"
+      ],
+      "handoffs": [
+        "contract_review_agent",
+        "sharepoint_agent"
+      ],
+      "guardrails": [
+        "Only Pass and Conditional Pass can advance into contract review."
+      ]
+    },
+    {
+      "id": "contract_review_agent",
+      "label": "Contract Review Agent",
+      "purpose": "Create review rounds, reviewer tasks, and department coverage checks.",
+      "owns": [
+        "review_plan"
+      ],
+      "reads": [
+        "ticket",
+        "selected_departments",
+        "contract_signals"
+      ],
+      "writes": [
+        "review_plan",
+        "workflow_status",
+        "audit_events"
+      ],
+      "handoffs": [
+        "sharepoint_agent"
+      ],
+      "guardrails": [
+        "Mandatory departments must be selected before ready_for_review."
+      ]
+    },
+    {
+      "id": "sharepoint_agent",
+      "label": "SharePoint Agent",
+      "purpose": "Plan official SharePoint folders, file actions, and permissions.",
+      "owns": [
+        "sharepoint_plan"
+      ],
+      "reads": [
+        "ticket",
+        "review_plan",
+        "dd_result"
+      ],
+      "writes": [
+        "sharepoint_plan",
+        "api_contracts",
+        "audit_events"
+      ],
+      "handoffs": [
+        "lifecycle_agent"
+      ],
+      "guardrails": [
+        "Partner-facing access is limited to explicitly approved folders."
+      ]
+    },
+    {
+      "id": "lifecycle_agent",
+      "label": "Lifecycle Agent",
+      "purpose": "Plan negotiation, partner portal, and termination lifecycle operations.",
+      "owns": [
+        "negotiation_plan",
+        "partner_portal_plan",
+        "termination_plan"
+      ],
+      "reads": [
+        "ticket",
+        "workflow_status"
+      ],
+      "writes": [
+        "negotiation_plan",
+        "partner_portal_plan",
+        "termination_plan",
+        "audit_events"
+      ],
+      "handoffs": [
+        "ai_planning_agent"
+      ],
+      "guardrails": [
+        "Termination and signing actions remain separate workflow tracks."
+      ]
+    },
+    {
+      "id": "ai_planning_agent",
+      "label": "AI Planning Agent",
+      "purpose": "Plan optional AI operations for DD analysis, contract summary, risk scoring, and checklists.",
+      "owns": [
+        "ai_plan"
+      ],
+      "reads": [
+        "ticket",
+        "review_plan",
+        "dd_result"
+      ],
+      "writes": [
+        "ai_plan",
+        "api_contracts",
+        "audit_events"
+      ],
+      "handoffs": [
+        "office365_agent"
+      ],
+      "guardrails": [
+        "AI operations are advisory and do not bypass deterministic policy gates."
+      ]
+    },
+    {
+      "id": "office365_agent",
+      "label": "Office365 Agent",
+      "purpose": "Plan Microsoft Graph operations for users, groups, mail, calendar, Teams, and files.",
+      "owns": [
+        "office365_plan"
+      ],
+      "reads": [
+        "ticket",
+        "review_plan",
+        "sla_plan"
+      ],
+      "writes": [
+        "office365_plan",
+        "api_contracts",
+        "audit_events"
+      ],
+      "handoffs": [
+        "sla_agent"
+      ],
+      "guardrails": [
+        "Connector actions are represented as planned operations until execution."
+      ]
+    },
+    {
+      "id": "sla_agent",
+      "label": "SLA Agent",
+      "purpose": "Plan reminders, overdue scans, and department-manager escalations.",
+      "owns": [
+        "sla_plan"
+      ],
+      "reads": [
+        "review_plan",
+        "due_date",
+        "priority"
+      ],
+      "writes": [
+        "sla_plan",
+        "api_contracts",
+        "audit_events"
+      ],
+      "handoffs": [
+        "execution_agent"
+      ],
+      "guardrails": [
+        "Escalation plans must preserve the original review task owner."
+      ]
+    },
+    {
+      "id": "execution_agent",
+      "label": "Execution Planner",
+      "purpose": "Order planned API operations into a dry-run execution queue.",
+      "owns": [
+        "execution_plan"
+      ],
+      "reads": [
+        "admin_plan",
+        "sharepoint_plan",
+        "office365_plan",
+        "sla_plan",
+        "ai_plan"
+      ],
+      "writes": [
+        "execution_plan",
+        "audit_events"
+      ],
+      "handoffs": [
+        "audit_persistence_agent"
+      ],
+      "guardrails": [
+        "Every planned external operation requires an audit entry."
+      ]
+    },
+    {
+      "id": "audit_persistence_agent",
+      "label": "Audit Persistence Agent",
+      "purpose": "Plan immutable audit persistence to SharePoint and Admin audit logs.",
+      "owns": [
+        "audit_plan"
+      ],
+      "reads": [
+        "audit_events",
+        "execution_plan"
+      ],
+      "writes": [
+        "audit_plan"
+      ],
+      "handoffs": [
+        "dashboard_agent"
+      ],
+      "guardrails": [
+        "Audit persistence is append-only."
+      ]
+    },
+    {
+      "id": "dashboard_agent",
+      "label": "Dashboard Agent",
+      "purpose": "Build operational counters and queue snapshots for governance monitoring.",
+      "owns": [
+        "dashboard_snapshot"
+      ],
+      "reads": [
+        "ticket",
+        "workflow_status",
+        "review_plan",
+        "sla_plan"
+      ],
+      "writes": [
+        "dashboard_snapshot",
+        "audit_events"
+      ],
+      "handoffs": [
+        "ai_summary_agent"
+      ],
+      "guardrails": [
+        "Dashboard data must not expose internal-only fields to external visibility."
+      ]
+    },
+    {
+      "id": "access_denied_agent",
+      "label": "Access Denied Agent",
+      "purpose": "Return a controlled terminal response when RBAC blocks the actor.",
+      "owns": [
+        "workflow_status"
+      ],
+      "reads": [
+        "access_result",
+        "ticket"
+      ],
+      "writes": [
+        "workflow_status",
+        "audit_events"
+      ],
+      "handoffs": [
+        "ai_summary_agent"
+      ],
+      "guardrails": [
+        "Do not continue to policy, DD, or execution planning after denial."
+      ]
+    },
+    {
+      "id": "policy_blocked_agent",
+      "label": "Policy Blocked Agent",
+      "purpose": "Return a controlled terminal response when a critical policy is violated.",
+      "owns": [
+        "workflow_status"
+      ],
+      "reads": [
+        "policy_result",
+        "ticket"
+      ],
+      "writes": [
+        "workflow_status",
+        "audit_events"
+      ],
+      "handoffs": [
+        "ai_summary_agent"
+      ],
+      "guardrails": [
+        "Do not continue to DD or contract review after a blocking violation."
+      ]
+    },
+    {
+      "id": "ai_summary_agent",
+      "label": "AI Summary Agent",
+      "purpose": "Produce optional user-facing summary text and call memory tools when configured.",
+      "owns": [
+        "ai_summary"
+      ],
+      "reads": [
+        "ticket",
+        "workflow_status",
+        "dashboard_snapshot",
+        "audit_events"
+      ],
+      "writes": [
+        "ai_summary",
+        "messages"
+      ],
+      "handoffs": [
+        "tools",
+        "END"
+      ],
+      "guardrails": [
+        "Fallback to deterministic summaries when LLM credentials are not configured."
+      ]
+    },
+    {
+      "id": "tools",
+      "label": "Memory Tools",
+      "purpose": "Persist and recall long-term memory facts for configured AgentBase memory stores.",
+      "owns": [
+        "memory_records"
+      ],
+      "reads": [
+        "messages",
+        "MEMORY_ID",
+        "MEMORY_STRATEGY_ID"
+      ],
+      "writes": [
+        "messages",
+        "memory_records"
+      ],
+      "handoffs": [
+        "ai_summary_agent"
+      ],
+      "guardrails": [
+        "Do not require memory for deterministic governance execution."
+      ]
+    }
+  ],
+  "topology": {
+    "nodes": [
+      {
+        "id": "START",
+        "label": "Start",
+        "kind": "runtime"
+      },
+      {
+        "id": "intake_agent",
+        "label": "Intake Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "rbac_agent",
+        "label": "RBAC Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "admin_governance_agent",
+        "label": "Admin Governance Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "policy_agent",
+        "label": "Critical Policy Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "dd_gate_agent",
+        "label": "DD Gate Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "contract_review_agent",
+        "label": "Contract Review Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "sharepoint_agent",
+        "label": "SharePoint Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "lifecycle_agent",
+        "label": "Lifecycle Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "ai_planning_agent",
+        "label": "AI Planning Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "office365_agent",
+        "label": "Office365 Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "sla_agent",
+        "label": "SLA Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "execution_agent",
+        "label": "Execution Planner",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "audit_persistence_agent",
+        "label": "Audit Persistence Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "dashboard_agent",
+        "label": "Dashboard Agent",
+        "kind": "deterministic_agent"
+      },
+      {
+        "id": "access_denied_agent",
+        "label": "Access Denied Agent",
+        "kind": "terminal_block_agent"
+      },
+      {
+        "id": "policy_blocked_agent",
+        "label": "Policy Blocked Agent",
+        "kind": "terminal_block_agent"
+      },
+      {
+        "id": "ai_summary_agent",
+        "label": "AI Summary Agent",
+        "kind": "llm_optional_agent"
+      },
+      {
+        "id": "tools",
+        "label": "Memory Tools",
+        "kind": "tool_node"
+      },
+      {
+        "id": "END",
+        "label": "End",
+        "kind": "runtime"
+      }
+    ],
+    "edges": [
+      {
+        "source": "START",
+        "target": "intake_agent"
+      },
+      {
+        "source": "intake_agent",
+        "target": "rbac_agent"
+      },
+      {
+        "source": "rbac_agent",
+        "target": "admin_governance_agent",
+        "condition": "access allowed"
+      },
+      {
+        "source": "rbac_agent",
+        "target": "access_denied_agent",
+        "condition": "access denied"
+      },
+      {
+        "source": "admin_governance_agent",
+        "target": "policy_agent"
+      },
+      {
+        "source": "policy_agent",
+        "target": "dd_gate_agent",
+        "condition": "policy allowed"
+      },
+      {
+        "source": "policy_agent",
+        "target": "policy_blocked_agent",
+        "condition": "policy violation"
+      },
+      {
+        "source": "access_denied_agent",
+        "target": "ai_summary_agent"
+      },
+      {
+        "source": "policy_blocked_agent",
+        "target": "ai_summary_agent"
+      },
+      {
+        "source": "dd_gate_agent",
+        "target": "contract_review_agent",
+        "condition": "DD allows contract review"
+      },
+      {
+        "source": "dd_gate_agent",
+        "target": "sharepoint_agent",
+        "condition": "DD blocks contract review"
+      },
+      {
+        "source": "contract_review_agent",
+        "target": "sharepoint_agent"
+      },
+      {
+        "source": "sharepoint_agent",
+        "target": "lifecycle_agent"
+      },
+      {
+        "source": "lifecycle_agent",
+        "target": "ai_planning_agent"
+      },
+      {
+        "source": "ai_planning_agent",
+        "target": "office365_agent"
+      },
+      {
+        "source": "office365_agent",
+        "target": "sla_agent"
+      },
+      {
+        "source": "sla_agent",
+        "target": "execution_agent"
+      },
+      {
+        "source": "execution_agent",
+        "target": "audit_persistence_agent"
+      },
+      {
+        "source": "audit_persistence_agent",
+        "target": "dashboard_agent"
+      },
+      {
+        "source": "dashboard_agent",
+        "target": "ai_summary_agent"
+      },
+      {
+        "source": "ai_summary_agent",
+        "target": "tools",
+        "condition": "LLM requested tool call"
+      },
+      {
+        "source": "tools",
+        "target": "ai_summary_agent"
+      },
+      {
+        "source": "ai_summary_agent",
+        "target": "END",
+        "condition": "no tool call"
+      }
+    ]
+  },
+  "contracts": {
+    "admin": {
+      "users": {
+        "create": "POST /api/admin/users",
+        "update": "PUT /api/admin/users/{user_id}",
+        "delete": "DELETE /api/admin/users/{user_id}"
+      },
+      "departments": {
+        "create": "POST /api/admin/departments",
+        "update": "PUT /api/admin/departments/{department_id}",
+        "delete": "DELETE /api/admin/departments/{department_id}"
+      },
+      "review_matrix": {
+        "create": "POST /api/admin/review-matrix",
+        "update": "PUT /api/admin/review-matrix/{matrix_id}",
+        "delete": "DELETE /api/admin/review-matrix/{matrix_id}"
+      },
+      "dd_rules": {
+        "create": "POST /api/admin/dd-rules",
+        "update": "PUT /api/admin/dd-rules/{rule_id}",
+        "delete": "DELETE /api/admin/dd-rules/{rule_id}"
+      },
+      "audit_logs": {
+        "list": "GET /api/admin/audit-logs",
+        "append": "POST /api/admin/audit-logs"
+      },
+      "connectors": {
+        "office365": "POST /api/admin/connectors/office365",
+        "sharepoint_mapping": "POST /api/admin/sharepoint-mapping"
+      }
+    },
+    "sharepoint": {
+      "create_folder": "POST /api/sharepoint/folders/create",
+      "upload_file": "POST /api/sharepoint/files/upload",
+      "move_file": "POST /api/sharepoint/files/move",
+      "copy_file": "POST /api/sharepoint/files/copy",
+      "grant_permission": "POST /api/sharepoint/permissions/grant",
+      "revoke_permission": "POST /api/sharepoint/permissions/revoke",
+      "get_file": "GET /api/sharepoint/files/{file_id}",
+      "get_ticket_folder": "GET /api/sharepoint/folders/{ticket_id}"
+    },
+    "data_sources": {
+      "create": "POST /api/data-sources",
+      "list": "GET /api/data-sources",
+      "update": "PUT /api/data-sources/{source_id}",
+      "delete": "DELETE /api/data-sources/{source_id}",
+      "test": "POST /api/data-sources/{source_id}/test",
+      "sync": "POST /api/data-sources/{source_id}/sync"
+    },
+    "dd": {
+      "start": "POST /api/dd/start",
+      "reassess": "POST /api/dd/reassess",
+      "result": "GET /api/dd/result/{ticket_id}",
+      "approve": "POST /api/dd/approve",
+      "reject": "POST /api/dd/reject",
+      "request_more_info": "POST /api/dd/request-more-info"
+    },
+    "contract_review": {
+      "create_round": "POST /api/contracts/rounds/create",
+      "assign_reviewers": "POST /api/contracts/rounds/{round_id}/assign-reviewers",
+      "complete_review": "POST /api/contracts/rounds/{round_id}/complete-review",
+      "submit_summary": "POST /api/contracts/rounds/{round_id}/submit-summary",
+      "get_round": "GET /api/contracts/rounds/{round_id}",
+      "list_ticket_rounds": "GET /api/contracts/tickets/{ticket_id}/rounds"
+    },
+    "partner_portal": {
+      "create_request": "POST /api/partner-portal/requests",
+      "upload_document": "POST /api/partner-portal/documents/upload",
+      "submit_redline": "POST /api/partner-portal/redlines",
+      "submit_question": "POST /api/partner-portal/questions",
+      "get_limited_status": "GET /api/partner-portal/tickets/{ticket_id}/status"
+    },
+    "termination": {
+      "create_workflow": "POST /api/termination/workflows/create",
+      "advance_stage": "POST /api/termination/workflows/{termination_id}/advance",
+      "final_approval": "POST /api/termination/workflows/{termination_id}/final-approval",
+      "archive": "POST /api/termination/workflows/{termination_id}/archive"
+    },
+    "ai": {
+      "dd_analyze": "POST /api/ai/dd/analyze",
+      "contract_summarize": "POST /api/ai/contracts/summarize",
+      "contract_compare": "POST /api/ai/contracts/compare",
+      "recommend_reviewers": "POST /api/ai/contracts/recommend-reviewers",
+      "contract_risk_score": "POST /api/ai/contracts/risk-score",
+      "negotiation_playbook": "POST /api/ai/negotiation/playbook",
+      "termination_checklist": "POST /api/ai/termination/checklist"
+    },
+    "office365": {
+      "users": "GET /api/office365/users",
+      "groups": "GET /api/office365/groups",
+      "send_mail": "POST /api/office365/mail/send",
+      "calendar_reminders": "POST /api/office365/calendar/reminders",
+      "teams_notify": "POST /api/office365/teams/notify",
+      "sharepoint_library": "GET /api/office365/sharepoint/library",
+      "onedrive_reference": "GET /api/office365/onedrive/files/{file_id}"
+    },
+    "sla": {
+      "schedule_reminders": "POST /api/sla/review-tasks/schedule-reminders",
+      "configure_escalations": "POST /api/sla/review-tasks/escalations",
+      "overdue_scan": "POST /api/sla/review-tasks/overdue-scan"
+    }
+  },
+  "schemas": [
+    "agent_catalog",
+    "governance_response",
+    "invocation_payload",
+    "scenario_catalog",
+    "topology"
+  ],
+  "config": {
+    "variables": [
+      {
+        "name": "GREENNODE_CLIENT_ID",
+        "group": "agentbase",
+        "required_for": [
+          "deploy",
+          "runtime"
+        ],
+        "secret": false,
+        "description": "GreenNode IAM service account client ID."
+      },
+      {
+        "name": "GREENNODE_CLIENT_SECRET",
+        "group": "agentbase",
+        "required_for": [
+          "deploy",
+          "runtime"
+        ],
+        "secret": true,
+        "description": "GreenNode IAM service account client secret."
+      },
+      {
+        "name": "GREENNODE_AGENT_IDENTITY",
+        "group": "agentbase",
+        "required_for": [],
+        "secret": false,
+        "description": "Optional AgentBase identity ID for deployed runtime operations."
+      },
+      {
+        "name": "LLM_API_KEY",
+        "group": "llm",
+        "required_for": [
+          "ai_summary"
+        ],
+        "secret": true,
+        "description": "API key for an OpenAI-compatible LLM provider."
+      },
+      {
+        "name": "LLM_BASE_URL",
+        "group": "llm",
+        "required_for": [
+          "ai_summary"
+        ],
+        "secret": false,
+        "description": "Base URL for an OpenAI-compatible LLM provider."
+      },
+      {
+        "name": "LLM_MODEL",
+        "group": "llm",
+        "required_for": [
+          "ai_summary"
+        ],
+        "secret": false,
+        "description": "Model name used by the AI summary agent."
+      },
+      {
+        "name": "MEMORY_ID",
+        "group": "memory",
+        "required_for": [
+          "agentbase_memory"
+        ],
+        "secret": false,
+        "description": "AgentBase memory store ID for LangGraph checkpointing and long-term memory."
+      },
+      {
+        "name": "MEMORY_STRATEGY_ID",
+        "group": "memory",
+        "required_for": [],
+        "secret": false,
+        "default": "default",
+        "description": "Memory namespace strategy ID."
+      }
+    ],
+    "validation": {
+      "runtime": {
+        "mode": "runtime",
+        "status": "missing_required_values",
+        "missing": [
+          "GREENNODE_CLIENT_ID",
+          "GREENNODE_CLIENT_SECRET"
+        ]
+      },
+      "deploy": {
+        "mode": "deploy",
+        "status": "missing_required_values",
+        "missing": [
+          "GREENNODE_CLIENT_ID",
+          "GREENNODE_CLIENT_SECRET"
+        ]
+      },
+      "ai_summary": {
+        "mode": "ai_summary",
+        "status": "missing_required_values",
+        "missing": [
+          "LLM_API_KEY",
+          "LLM_BASE_URL",
+          "LLM_MODEL"
+        ]
+      },
+      "agentbase_memory": {
+        "mode": "agentbase_memory",
+        "status": "missing_required_values",
+        "missing": [
+          "MEMORY_ID"
+        ]
+      }
+    }
+  },
+  "openapi": {
+    "version": "3.1.0",
+    "title": "Enterprise Partner Governance Platform API",
+    "path_count": 65,
+    "metadata_paths": [
+      "/metadata/agents",
+      "/metadata/topology"
+    ]
+  }
+}

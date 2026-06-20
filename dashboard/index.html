@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Enterprise Partner Governance Dashboard</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Enterprise Partner Governance Platform</p>
+        <h1>Governance Operations Dashboard</h1>
+      </div>
+      <div class="actions">
+        <button id="refreshButton" class="icon-button" title="Reload dashboard data" aria-label="Reload dashboard data">
+          <span aria-hidden="true">R</span>
+        </button>
+        <a class="icon-link" href="./data.json" title="Open raw dashboard data" aria-label="Open raw dashboard data">
+          <span aria-hidden="true">J</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="metrics" aria-label="Summary metrics">
+        <article class="metric metric-green">
+          <span>Scenarios</span>
+          <strong id="scenarioCount">0</strong>
+        </article>
+        <article class="metric metric-blue">
+          <span>Agents</span>
+          <strong id="agentCount">0</strong>
+        </article>
+        <article class="metric metric-amber">
+          <span>API Contracts</span>
+          <strong id="contractCount">0</strong>
+        </article>
+        <article class="metric metric-rose">
+          <span>Graph Edges</span>
+          <strong id="edgeCount">0</strong>
+        </article>
+      </section>
+
+      <section class="control-row">
+        <label class="search-box">
+          <span>Search</span>
+          <input id="scenarioSearch" type="search" placeholder="Partner, action, role" />
+        </label>
+        <div class="tabs" role="tablist" aria-label="Scenario filter">
+          <button class="tab active" data-status="all" type="button">All</button>
+          <button class="tab" data-status="ready_for_review" type="button">Ready</button>
+          <button class="tab" data-status="blocked" type="button">Blocked</button>
+          <button class="tab" data-status="reviewer_selection_incomplete" type="button">Review gaps</button>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="panel span-7">
+          <div class="panel-heading">
+            <div>
+              <h2>Workflow Queue</h2>
+              <p>Scenario smoke tests rendered as operational tickets.</p>
+            </div>
+            <span id="queueCount" class="pill">0 shown</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Scenario</th>
+                  <th>Partner</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Risk</th>
+                  <th>Audit</th>
+                </tr>
+              </thead>
+              <tbody id="scenarioRows"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel span-5">
+          <div class="panel-heading">
+            <div>
+              <h2>Workflow Distribution</h2>
+              <p>Current smoke catalog by governance outcome.</p>
+            </div>
+          </div>
+          <div id="workflowBars" class="bars"></div>
+          <div class="split">
+            <div>
+              <h3>Risk Mix</h3>
+              <div id="riskList" class="compact-list"></div>
+            </div>
+            <div>
+              <h3>Config Health</h3>
+              <div id="configHealth" class="compact-list"></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel span-6">
+          <div class="panel-heading">
+            <div>
+              <h2>Agent Topology</h2>
+              <p>Executable LangGraph nodes grouped by responsibility.</p>
+            </div>
+            <span id="nodeCount" class="pill">0 nodes</span>
+          </div>
+          <div id="agentGrid" class="agent-grid"></div>
+        </article>
+
+        <article class="panel span-6">
+          <div class="panel-heading">
+            <div>
+              <h2>Decision Trace</h2>
+              <p>Gate-by-gate trace for the selected scenario.</p>
+            </div>
+            <span id="selectedScenario" class="pill">None</span>
+          </div>
+          <div id="traceList" class="trace-list"></div>
+        </article>
+
+        <article class="panel span-12">
+          <div class="panel-heading">
+            <div>
+              <h2>Integration Surface</h2>
+              <p>Published contracts, schemas, OpenAPI metadata, and runtime discovery paths.</p>
+            </div>
+          </div>
+          <div class="surface-grid">
+            <div>
+              <h3>OpenAPI</h3>
+              <dl id="openapiFacts"></dl>
+            </div>
+            <div>
+              <h3>Schemas</h3>
+              <div id="schemaChips" class="chips"></div>
+            </div>
+            <div>
+              <h3>Metadata Paths</h3>
+              <div id="metadataPaths" class="compact-list"></div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <template id="emptyTemplate">
+      <tr>
+        <td colspan="6" class="empty">No scenarios match the current filter.</td>
+      </tr>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

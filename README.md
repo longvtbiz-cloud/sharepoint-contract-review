@@ -180,6 +180,15 @@ Write all integration artifacts to a folder:
 python scripts\governance_cli.py artifacts --output-dir artifacts
 ```
 
+Refresh and open the local dashboard:
+
+```powershell
+python scripts\governance_cli.py dashboard --output-dir dashboard
+python -m http.server 8090 --directory dashboard
+```
+
+Then open `http://127.0.0.1:8090`.
+
 Build the runtime container:
 
 ```powershell
