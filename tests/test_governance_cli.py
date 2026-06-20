@@ -7,7 +7,17 @@ from scripts import governance_cli
 def test_cli_parser_exposes_expected_commands() -> None:
     parser = build_parser()
 
-    for command in ["validate", "scenarios", "schemas", "agents", "openapi", "config", "topology", "artifacts"]:
+    for command in [
+        "validate",
+        "contract-check",
+        "scenarios",
+        "schemas",
+        "agents",
+        "openapi",
+        "config",
+        "topology",
+        "artifacts",
+    ]:
         args = parser.parse_args([command])
         assert args.command == command
 
@@ -59,6 +69,18 @@ def test_cli_agents_writes_output_file(tmp_path) -> None:
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert payload["agents"][0]["id"] == "intake_agent"
     assert payload["agents"][-1]["id"] == "tools"
+
+
+def test_cli_contract_check_writes_output_file(tmp_path) -> None:
+    output = tmp_path / "contract-check.json"
+    args = build_parser().parse_args(["contract-check", "--output", str(output)])
+
+    args.func(args)
+
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["status"] == "pass"
+    assert payload["checks"] == 14
+    assert payload["failed"] == 0
 
 
 def test_cli_config_writes_validation_result(tmp_path) -> None:

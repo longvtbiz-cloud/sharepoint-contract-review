@@ -10,6 +10,7 @@ from governance.config import list_config_variables, validate_environment
 from governance.openapi import build_openapi_spec
 from governance.scenarios import list_scenarios
 from governance.schemas import list_schemas
+from governance.schema_validation import validate_against_schema
 from governance.topology import build_mermaid, build_topology
 
 
@@ -26,6 +27,45 @@ def cmd_validate(_args: argparse.Namespace) -> None:
     from scripts import validate_governance_flow
 
     validate_governance_flow.run_all_checks()
+
+
+def cmd_contract_check(args: argparse.Namespace) -> None:
+    from scripts.validate_governance_flow import invoke
+
+    schemas = list_schemas()
+    checks = []
+
+    for scenario in list_scenarios():
+        scenario_id = scenario["scenario_id"]
+        payload_issues = validate_against_schema(scenario["payload"], schemas["invocation_payload"])
+        response = invoke(scenario["payload"])
+        response_issues = validate_against_schema(response, schemas["governance_response"])
+        checks.append(
+            {
+                "target": f"scenario:{scenario_id}",
+                "status": "pass" if not payload_issues and not response_issues else "fail",
+                "issues": [*payload_issues, *response_issues],
+            }
+        )
+
+    metadata_targets = {
+        "agent_catalog": ({"agents": list_agents()}, schemas["agent_catalog"]),
+        "topology": (build_topology(), schemas["topology"]),
+    }
+    for target, (payload, schema) in metadata_targets.items():
+        issues = validate_against_schema(payload, schema)
+        checks.append({"target": target, "status": "pass" if not issues else "fail", "issues": issues})
+
+    failed = [check for check in checks if check["status"] != "pass"]
+    payload = {
+        "status": "pass" if not failed else "fail",
+        "checks": len(checks),
+        "failed": len(failed),
+        "results": checks if args.verbose or failed else [],
+    }
+    _write_json(payload, args.output)
+    if failed:
+        raise SystemExit(1)
 
 
 def cmd_scenarios(args: argparse.Namespace) -> None:
@@ -80,6 +120,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     validate_parser = subparsers.add_parser("validate", help="Run deterministic governance smoke checks.")
     validate_parser.set_defaults(func=cmd_validate)
+
+    contract_parser = subparsers.add_parser("contract-check", help="Validate scenarios and metadata against schemas.")
+    contract_parser.add_argument("--output", type=Path)
+    contract_parser.add_argument("--verbose", action="store_true")
+    contract_parser.set_defaults(func=cmd_contract_check)
 
     scenarios_parser = subparsers.add_parser("scenarios", help="Print or write reusable scenario payloads.")
     scenarios_parser.add_argument("--output", type=Path)

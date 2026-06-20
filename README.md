@@ -124,6 +124,7 @@ Run deterministic validation checks without starting the server:
 $env:PYTHONIOENCODING='utf-8'
 $env:PYTHONUTF8='1'
 python scripts\governance_cli.py validate
+python scripts\governance_cli.py contract-check
 pytest
 ```
 
