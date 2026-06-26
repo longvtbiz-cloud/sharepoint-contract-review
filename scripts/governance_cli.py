@@ -101,6 +101,17 @@ def cmd_dashboard(args: argparse.Namespace) -> None:
     _write_json(build_dashboard_data(), args.output_dir / "data.json")
 
 
+def cmd_serve_dashboard(args: argparse.Namespace) -> None:
+    from scripts.serve_dashboard import serve_dashboard
+
+    serve_dashboard(
+        host=args.host,
+        port=args.port,
+        directory=args.directory,
+        refresh=not args.no_refresh,
+    )
+
+
 def cmd_config(args: argparse.Namespace) -> None:
     payload = {"config": list_config_variables()}
     if args.check_mode:
@@ -165,6 +176,16 @@ def build_parser() -> argparse.ArgumentParser:
     dashboard_parser = subparsers.add_parser("dashboard", help="Refresh local dashboard data.")
     dashboard_parser.add_argument("--output-dir", type=Path, default=Path("dashboard"))
     dashboard_parser.set_defaults(func=cmd_dashboard)
+
+    serve_dashboard_parser = subparsers.add_parser(
+        "serve-dashboard",
+        help="Refresh and serve the local dashboard.",
+    )
+    serve_dashboard_parser.add_argument("--host", default="127.0.0.1")
+    serve_dashboard_parser.add_argument("--port", type=int, default=8090)
+    serve_dashboard_parser.add_argument("--directory", type=Path, default=Path("dashboard"))
+    serve_dashboard_parser.add_argument("--no-refresh", action="store_true")
+    serve_dashboard_parser.set_defaults(func=cmd_serve_dashboard)
 
     return parser
 

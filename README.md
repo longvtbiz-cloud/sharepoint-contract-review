@@ -183,8 +183,7 @@ python scripts\governance_cli.py artifacts --output-dir artifacts
 Refresh and open the local dashboard:
 
 ```powershell
-python scripts\governance_cli.py dashboard --output-dir dashboard
-python -m http.server 8090 --directory dashboard
+python scripts\governance_cli.py serve-dashboard --port 8090
 ```
 
 Then open `http://127.0.0.1:8090`.

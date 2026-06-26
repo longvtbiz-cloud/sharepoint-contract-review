@@ -18,6 +18,7 @@ def test_cli_parser_exposes_expected_commands() -> None:
         "topology",
         "artifacts",
         "dashboard",
+        "serve-dashboard",
     ]:
         args = parser.parse_args([command])
         assert args.command == command
